@@ -1,0 +1,2472 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Photobooth PRO MAX v8.6</title>
+  <style>
+    :root{
+      --bg:#fff6fb;
+      --bg2:#fff;
+      --card:#ffffff;
+      --text:#1f2937;
+      --muted:#6b7280;
+      --line:#f5d4e3;
+      --primary:#ff4d8d;
+      --primary2:#ff9abc;
+      --accent:#7c3aed;
+      --dark:#111827;
+      --shadow:0 16px 44px rgba(255,77,141,.14);
+      --radius:24px;
+      --tabH:86px;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:linear-gradient(180deg,var(--bg),var(--bg2));font-family:Inter,Arial,sans-serif;color:var(--text)}
+    body{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+    button,input,select{font:inherit}
+    .hidden{display:none!important}
+    .app{max-width:1320px;margin:0 auto;padding:12px}
+    .shell{display:grid;grid-template-rows:auto 1fr auto;min-height:calc(100vh - 24px);gap:12px}
+    .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .topbar{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{width:54px;height:54px;border-radius:18px;background:linear-gradient(135deg,var(--primary),var(--accent));display:grid;place-items:center;color:#fff;font-size:24px;font-weight:800}
+    .brand h1{margin:0;font-size:clamp(20px,3vw,30px)}
+    .brand p{margin:3px 0 0;color:var(--muted);font-size:14px}
+    .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .btn{border:0;border-radius:18px;padding:12px 15px;font-weight:800;cursor:pointer;transition:.15s}
+    .btn:hover{transform:translateY(-1px)}
+    .btn:active{transform:translateY(1px)}
+    .btn.primary{background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff}
+    .btn.dark{background:var(--dark);color:#fff}
+    .btn.soft{background:#fff;border:1px solid var(--line);color:var(--text)}
+    .btn.accent{background:linear-gradient(135deg,#8b5cf6,#ec4899);color:#fff}
+    .btn.small{padding:9px 12px;border-radius:14px;font-size:13px}
+    .workspace{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:12px;min-height:0}
+    .preview-wrap{padding:12px;display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:10px;min-height:0}
+    .preview-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+    .status{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .chip{padding:8px 12px;border-radius:999px;background:#fff;border:1px solid var(--line);font-size:13px;color:var(--muted);font-weight:700}
+    .stage{position:relative;min-height:360px;border-radius:24px;overflow:hidden;background:radial-gradient(circle at top,#fef3f8,#f8fafc 55%,#eef2ff);display:grid;place-items:center}
+    .stage-inner{position:relative;width:100%;height:100%;display:grid;place-items:center;padding:12px}
+    #cameraStage > video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#111}
+    .overlay-count{position:absolute;inset:0;display:grid;place-items:center;font-size:min(22vw,140px);font-weight:900;color:#fff;background:rgba(0,0,0,.22);z-index:5}
+    .preview-img{max-width:100%;max-height:72vh;object-fit:contain;display:block;border-radius:18px;box-shadow:0 20px 50px rgba(0,0,0,.12);background:#fff}
+    .empty-state{padding:28px;text-align:center;color:var(--muted);font-weight:700;line-height:1.6}
+    .dock{padding:10px;border-top:1px solid var(--line);display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+    .tab{min-width:96px;border:1px solid var(--line);background:#fff;border-radius:18px;padding:10px 12px;font-weight:800;cursor:pointer}
+    .tab.active{background:linear-gradient(135deg,#fff0f6,#f5f3ff);border-color:#f3b6cf;color:#be185d}
+    .tools{padding:10px;display:grid;grid-template-rows:minmax(0,1fr) auto;gap:10px;min-height:0}
+    .toolbox{padding:10px;overflow:auto;display:grid;grid-template-rows:auto auto auto minmax(0,1fr);gap:10px}
+    .tool-header{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+    .tool-header h2{margin:0;font-size:15px}
+    .tool-header p{margin:0;color:var(--muted);font-size:12px}
+    .compact-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+    .compact-grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .card{border:1px solid var(--line);background:#fff;border-radius:18px;padding:8px}
+    .label{font-size:12px;color:var(--muted);font-weight:700;margin-bottom:6px}
+    .field input,.field select,.field textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:14px;background:#fff}
+    .field input[type="range"]{padding:0;border:0;background:transparent}
+    .mini-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+    .mini-btn{border:1px solid var(--line);background:#fff;border-radius:14px;padding:8px;cursor:pointer;text-align:center;font-size:12px;font-weight:800;min-height:64px;display:grid;place-items:center}
+    .mini-btn.active{border-color:#f3b6cf;background:linear-gradient(135deg,#fff0f6,#f5f3ff);color:#be185d}
+    .mini-btn img{width:100%;height:50px;object-fit:contain;border-radius:10px}
+    .gallery{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;align-content:start}
+    .thumb{position:relative;aspect-ratio:3/4;border-radius:14px;overflow:hidden;border:1px solid var(--line);cursor:pointer;background:#f8fafc}
+    .thumb.selected{outline:3px solid rgba(255,77,141,.2);border-color:var(--primary)}
+    .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+    .badge{position:absolute;left:6px;top:6px;background:rgba(255,255,255,.92);padding:4px 8px;border-radius:999px;font-size:11px;font-weight:900}
+    .remove{position:absolute;right:6px;top:6px;border:0;border-radius:999px;background:rgba(17,17,17,.75);color:#fff;padding:4px 7px;cursor:pointer}
+    .gallery-wrap{min-height:0;overflow:auto;border:1px dashed var(--line);border-radius:18px;padding:8px;background:#fffafc}
+    .slider-row{display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px}
+    .slider-row span{font-size:12px;font-weight:800;color:var(--muted);min-width:44px;text-align:right}
+    .footer-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+    .notice{font-size:12px;color:var(--muted);line-height:1.5}
+    .slot-editor{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+    .slot-btn{border:1px solid var(--line);background:#fff;border-radius:12px;padding:8px;font-weight:800;cursor:pointer;font-size:12px}
+    .slot-btn.active{border-color:#f3b6cf;background:linear-gradient(135deg,#fff0f6,#f5f3ff);color:#be185d}
+    .preview-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+    .small-note{font-size:11px;color:var(--muted)}
+    @media (max-width:1080px){
+      .workspace{grid-template-columns:1fr}
+      .stage{min-height:300px}
+      .preview-img{max-height:54vh}
+    }
+    @media (max-width:680px){
+      .app{padding:8px}
+      .shell{min-height:calc(100vh - 16px)}
+      .topbar{padding:12px}
+      .workspace{gap:8px}
+      .preview-wrap,.tools{padding:8px}
+      .gallery{grid-template-columns:repeat(4,minmax(0,1fr))}
+      .compact-grid,.footer-actions{grid-template-columns:1fr 1fr}
+      .compact-grid.three,.slot-editor,.mini-list{grid-template-columns:repeat(3,minmax(0,1fr))}
+      .tab{min-width:unset;flex:1}
+    }
+  
+    .section-title{font-size:12px;color:var(--muted);font-weight:800;margin:2px 0 6px}
+    .inline-pill{padding:7px 10px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:12px;font-weight:800;cursor:pointer}
+    .inline-pill.active{border-color:#f3b6cf;background:linear-gradient(135deg,#fff0f6,#f5f3ff);color:#be185d}
+    .stack{display:grid;gap:8px}
+    .preview-stack{position:relative;display:inline-block;max-width:100%;max-height:72vh}
+    .preview-stack .preview-img{display:block;max-width:100%;max-height:72vh}
+    .sticker-drag-layer{position:absolute;inset:0;pointer-events:none;touch-action:none}
+    .drag-sticker{position:absolute;display:grid;place-items:center;transform-origin:center center;pointer-events:auto;user-select:none;touch-action:none;cursor:grab}
+    .drag-sticker.active{outline:2px dashed rgba(124,58,237,.65);outline-offset:4px;border-radius:14px}
+    .drag-sticker img{width:100%;height:100%;object-fit:contain;display:block;pointer-events:none}
+    .drag-sticker .emoji{width:100%;height:100%;display:grid;place-items:center;pointer-events:none}
+    .asset-item{display:grid;grid-template-rows:1fr auto auto;gap:6px;align-items:stretch}
+    .asset-thumb{border:1px solid var(--line);border-radius:12px;background:#fff;min-height:66px;display:grid;place-items:center;padding:6px;cursor:pointer}
+    .asset-item.active .asset-thumb{border-color:#f3b6cf;background:linear-gradient(135deg,#fff0f6,#f5f3ff)}
+    .asset-thumb img{width:100%;height:50px;object-fit:contain;border-radius:10px}
+    .asset-name{font-size:11px;font-weight:800;line-height:1.25;word-break:break-word}
+    .asset-actions{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+    .asset-actions button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:6px;font-size:11px;font-weight:800;cursor:pointer}
+    .asset-actions button.danger{color:#b91c1c}
+    .text-drag-layer{position:absolute;inset:0;pointer-events:none;touch-action:none;z-index:4}
+    .drag-text{position:absolute;transform:translate(-50%,-50%);padding:8px 14px;border-radius:14px;background:rgba(255,255,255,.24);backdrop-filter:blur(6px);border:1px dashed rgba(255,77,141,.55);font-weight:800;line-height:1.2;white-space:nowrap;pointer-events:auto;user-select:none;touch-action:none;cursor:grab;text-shadow:0 1px 8px rgba(255,255,255,.75)}
+    .video-card{display:grid;gap:8px}
+    .video-preview-shell{width:min(100%,420px);margin:0 auto;border-radius:22px;background:#0b1220;padding:8px;box-shadow:0 16px 32px rgba(2,6,23,.18)}
+    .video-preview-shell.review{width:min(92vw,420px)}
+    .video-preview{display:block;width:100%;border-radius:16px;background:#000;object-fit:contain;aspect-ratio:3/4;min-height:auto;max-height:min(72vh,560px)}
+    .video-preview[data-orientation="landscape"]{aspect-ratio:16/9}
+    .video-preview[data-orientation="portrait"]{aspect-ratio:3/4}
+    .video-preview[data-orientation="square"]{aspect-ratio:1/1}
+    .recap-status{font-size:12px;color:var(--muted);line-height:1.5}
+    .font-import-row{display:grid;grid-template-columns:1fr auto;gap:8px}
+    .tap-note{font-size:12px;color:var(--muted);line-height:1.5}
+    .legacy-slot-tools{display:none!important}
+    .review-video-box{margin-top:14px;display:grid;gap:10px;padding:12px;border:1px solid var(--line);border-radius:22px;background:#fff;box-shadow:0 14px 34px rgba(15,23,42,.08);justify-items:center}
+    .review-video-box.hidden{display:none!important}
+    .review-video-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+    .review-video-head strong{font-size:14px}
+    .review-video-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .review-video-meta{font-size:12px;color:var(--muted);line-height:1.5}
+    .qr-wrap{display:grid;grid-template-columns:110px 1fr;gap:12px;align-items:center;padding:10px;border:1px dashed var(--line);border-radius:18px;background:#faf7ff}
+    .qr-preview{width:110px;height:110px;border-radius:14px;background:#fff;border:1px solid var(--line);display:grid;place-items:center;overflow:hidden}
+    .qr-preview img{width:100%;height:100%;object-fit:contain}
+    .qr-note{font-size:12px;color:var(--muted);line-height:1.55}
+
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="shell">
+      <section class="panel topbar">
+        <div class="brand">
+          <div class="logo">📸</div>
+          <div>
+            <h1>Photobooth PRO MAX v8.6</h1>
+            <p>Bản v8.6 tối ưu mượt hơn cho PC và điện thoại, preview gọn như photobooth ngoài tiệm, 1 file HTML duy nhất.</p>
+          </div>
+        </div>
+        <div class="row">
+          <button id="startCameraBtn" class="btn dark" type="button">Mở camera</button>
+          <button id="captureBtn" class="btn primary" type="button">Chụp ảnh</button>
+          <button id="uploadPhotoBtn" class="btn soft" type="button">Thêm ảnh</button>
+          <button id="generateBtnTop" class="btn accent" type="button">Tạo ảnh</button>
+          <input id="photoInput" type="file" accept="image/*" multiple class="hidden">
+        </div>
+      </section>
+
+      <div class="workspace">
+        <section class="panel preview-wrap">
+          <div class="preview-head">
+            <div class="status">
+              <div id="cameraStatus" class="chip">Chưa bật camera</div>
+              <div id="selectionStatus" class="chip">0 ảnh được chọn</div>
+              <div id="layoutStatus" class="chip">Layout: 2x4 strips dọc</div>
+            </div>
+            <div class="preview-actions">
+              <button id="retakeLastBtn" class="btn soft small" type="button">Chụp lại ảnh cuối</button>
+              <button id="switchCameraBtn" class="btn soft small" type="button">Đổi camera</button>
+              <button id="mirrorBtn" class="btn soft small" type="button">Lật gương: Bật</button>
+              <button id="downloadBtn" class="btn primary small" type="button">Tải PNG</button>
+            </div>
+          </div>
+          <div class="stage">
+            <div class="stage-inner">
+              <video id="video" autoplay playsinline muted class="hidden"></video>
+              <div id="previewEmpty" class="empty-state">Thêm ảnh hoặc chụp ảnh để bắt đầu.<br>Preview thành phẩm sẽ hiển thị lớn ở đây như photobooth ngoài tiệm.</div>
+              <div id="previewStack" class="preview-stack hidden">
+                <img id="finalPreview" class="preview-img" alt="Preview thành phẩm">
+                <div id="stickerDragLayer" class="sticker-drag-layer"></div>
+                <div id="textDragLayer" class="text-drag-layer"></div>
+              </div>
+              <div id="countdown" class="overlay-count hidden">3</div>
+            </div>
+          </div>
+          <div id="reviewVideoBox" class="review-video-box hidden">
+            <div class="review-video-head">
+              <strong>Video recap review</strong>
+              <div class="review-video-actions">
+                <button id="downloadRecapBtnReview" class="btn soft small" type="button">Tải video</button>
+              </div>
+            </div>
+            <div class="video-preview-shell review"><video id="recapVideoReview" class="video-preview" controls playsinline muted loop></video></div>
+            <div id="reviewVideoMeta" class="review-video-meta">Video recap sẽ hiện ở đây sau khi tạo.</div>
+            <div class="qr-wrap">
+              <div id="recapQrPreview" class="qr-preview"><span class="small-note">QR</span></div>
+              <div id="recapQrNote" class="qr-note">QR tải video sẽ hiện ở đây khi video recap đã sẵn sàng.</div>
+            </div>
+          </div>
+          <div class="dock">
+            <button class="tab active" data-tab="layout" type="button">Layout</button>
+            <button class="tab" data-tab="photos" type="button">Ảnh</button>
+            <button class="tab" data-tab="frame" type="button">Khung</button>
+            <button class="tab" data-tab="sticker" type="button">Sticker</button>
+            <button class="tab" data-tab="text" type="button">Chữ</button>
+            <button class="tab" data-tab="video" type="button">Video</button>
+          </div>
+        </section>
+
+        <aside class="panel tools">
+          <div class="toolbox">
+            <div class="tool-header">
+              <div>
+                <h2 id="toolTitle">Layout ảnh</h2>
+                <p id="toolDesc">Chọn kiểu ghép ảnh giống photobooth ngoài tiệm.</p>
+              </div>
+              <button id="autoSelectBtn" class="btn soft small" type="button">Chọn ảnh mới nhất</button>
+            </div>
+
+            <section id="tab-layout" class="tab-panel">
+              <div class="card">
+                <div id="layoutList" class="mini-list"></div>
+              </div>
+              <div class="compact-grid">
+                <div class="card field">
+                  <div class="label">Đếm ngược chụp</div>
+                  <select id="timerSelect">
+                    <option value="0">Chụp ngay</option>
+                    <option value="3" selected>3 giây</option>
+                    <option value="7">7 giây</option>
+                    <option value="10">10 giây</option>
+                  </select>
+                </div>
+                <div class="card field">
+                  <div class="label">Chất lượng xuất</div>
+                  <select id="qualitySelect">
+                    <option value="standard">Chuẩn</option>
+                    <option value="hd" selected>HD cao</option>
+                    <option value="4k">4K+</option>
+                  </select>
+                </div>
+              </div>
+              <div class="compact-grid three">
+                <button id="fitAutoBtn" class="mini-btn active" type="button" data-fit="contain_blur">Tự động đẹp</button>
+                <button id="fitContainBtn" class="mini-btn" type="button" data-fit="contain">Vừa khung</button>
+                <button id="fitCoverBtn" class="mini-btn" type="button" data-fit="cover">Đầy khung</button>
+              </div>
+              <div class="compact-grid">
+                <div class="card field">
+                  <div class="label">Màu nền khoảng trống</div>
+                  <input id="slotBgColor" type="color" value="#ffffff">
+                </div>
+                <div class="card field">
+                  <div class="label">Tự động xoay</div>
+                  <button id="autoRotateBtn" class="btn soft small" type="button">Bật</button>
+                </div>
+              </div>
+              <div class="card stack">
+                <div class="section-title">Filter camera</div>
+                <div class="compact-grid three">
+                  <button id="fxTimestampBtn" class="mini-btn active" type="button">TimeStamp</button>
+                  <button id="fxLightLeakBtn" class="mini-btn active" type="button">Light Leak</button>
+                  <button id="fxVignetteBtn" class="mini-btn active" type="button">Vignette</button>
+                </div>
+                <div class="compact-grid three">
+                  <button id="fxGrainBtn" class="mini-btn active" type="button">Grain</button>
+                  <button id="fxChromaticBtn" class="mini-btn active" type="button">Chromatic</button>
+                  <button id="fxResetBtn" class="mini-btn" type="button">Reset filter</button>
+                </div>
+                <div class="compact-grid">
+                  <div class="card field">
+                    <div class="label">Light Leak</div>
+                    <div class="slider-row"><input id="fxLightLeakRange" type="range" min="0" max="1" step="0.01" value="0.35"><span id="fxLightLeakValue">0.35</span></div>
+                  </div>
+                  <div class="card field">
+                    <div class="label">Vignette</div>
+                    <div class="slider-row"><input id="fxVignetteRange" type="range" min="0" max="1" step="0.01" value="0.32"><span id="fxVignetteValue">0.32</span></div>
+                  </div>
+                </div>
+                <div class="compact-grid">
+                  <div class="card field">
+                    <div class="label">Grain</div>
+                    <div class="slider-row"><input id="fxGrainRange" type="range" min="0" max="0.5" step="0.01" value="0.14"><span id="fxGrainValue">0.14</span></div>
+                  </div>
+                  <div class="card field">
+                    <div class="label">Chromatic</div>
+                    <div class="slider-row"><input id="fxChromaticRange" type="range" min="0" max="0.6" step="0.01" value="0.18"><span id="fxChromaticValue">0.18</span></div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section id="tab-photos" class="tab-panel hidden">
+              <div class="compact-grid">
+                <button id="clearSelectedBtn" class="btn soft small" type="button">Bỏ chọn ảnh</button>
+                <button id="clearAllBtn" class="btn soft small" type="button">Xóa toàn bộ ảnh</button>
+              </div>
+              <div class="gallery-wrap">
+                <div id="photoGallery" class="gallery"></div>
+              </div>
+              <div class="notice">Chạm ảnh để chọn theo thứ tự. Ảnh được chọn sẽ ghép theo layout hiện tại.</div>
+            </section>
+
+            <section id="tab-frame" class="tab-panel hidden">
+              <div class="compact-grid">
+                <button id="frameNoneBtn" class="btn soft small" type="button">Không dùng khung</button>
+                <button id="uploadFrameBtn" class="btn soft small" type="button">Thêm khung</button>
+                <input id="frameInput" type="file" accept="image/*" multiple class="hidden">
+                <button id="frameOverlayBtn" class="btn soft small" type="button">Khung phủ trên: Bật</button>
+                <button id="smartFrameBtn" class="btn soft small" type="button">Căn theo khung: Bật</button>
+                <button id="autoHoleBtn" class="btn soft small" type="button">Ô trống khung: Bật</button>
+              </div>
+              <div class="compact-grid">
+                <div class="card field">
+                  <div class="label">Danh mục khung</div>
+                  <select id="frameCategorySelect"></select>
+                </div>
+                <div class="card field">
+                  <div class="label">Xóa nền trắng của khung</div>
+                  <button id="removeWhiteBtn" class="btn soft small" type="button">Bật</button>
+                </div>
+              </div>
+              <div class="gallery-wrap">
+                <div id="frameGallery" class="mini-list"></div>
+              </div>
+              <div class="small-note">Khung thêm mới sẽ tự lưu vĩnh viễn trong trình duyệt và gắn vào danh mục layout đang chọn.</div>
+            </section>
+
+            <section id="tab-sticker" class="tab-panel hidden">
+              <div class="compact-grid">
+                <button id="uploadStickerBtn" class="btn soft small" type="button">Thêm sticker</button>
+                <button id="clearStickerBtn" class="btn soft small" type="button">Xóa sticker</button>
+                <input id="stickerInput" type="file" accept="image/*" multiple class="hidden">
+                <button id="toggleStickerBtn" class="btn soft small" type="button">Sticker: Bật</button>
+                <button id="applyOrderBtn" class="btn soft small" type="button">Tạo ảnh ngay</button>
+              </div>
+              <div class="gallery-wrap">
+                <div id="stickerGallery" class="mini-list"></div>
+              </div>
+              <div class="card stack">
+                <div class="section-title">Căn chỉnh sticker đang chọn</div>
+                <div id="stickerLayerButtons" class="slot-editor"></div>
+                <div class="compact-grid">
+                  <div class="card field">
+                    <div class="label">Vị trí ngang</div>
+                    <div class="slider-row"><input id="stickerXRange" type="range" min="0" max="1" step="0.01" value="0.5"><span id="stickerXValue">0.50</span></div>
+                  </div>
+                  <div class="card field">
+                    <div class="label">Vị trí dọc</div>
+                    <div class="slider-row"><input id="stickerYRange" type="range" min="0" max="1" step="0.01" value="0.15"><span id="stickerYValue">0.15</span></div>
+                  </div>
+                </div>
+                <div class="compact-grid">
+                  <div class="card field">
+                    <div class="label">Kích thước sticker</div>
+                    <div class="slider-row"><input id="stickerScaleRange" type="range" min="0.05" max="0.35" step="0.005" value="0.11"><span id="stickerScaleValue">0.11</span></div>
+                  </div>
+                  <div class="card field">
+                    <div class="label">Xoay sticker</div>
+                    <div class="slider-row"><input id="stickerRotateRange" type="range" min="-180" max="180" step="1" value="0"><span id="stickerRotateValue">0°</span></div>
+                  </div>
+                </div>
+                <div class="compact-grid three">
+                  <button class="inline-pill" data-sticker-preset="top-left" type="button">Trên trái</button>
+                  <button class="inline-pill" data-sticker-preset="top-right" type="button">Trên phải</button>
+                  <button class="inline-pill" data-sticker-preset="center" type="button">Chính giữa</button>
+                </div>
+                <div class="compact-grid">
+                  <button id="resetStickerBtn" class="btn soft small" type="button">Reset sticker</button>
+                  <button id="bringStickerFrontBtn" class="btn soft small" type="button">Đưa sticker cuối lên trên</button>
+                </div>
+              </div>
+            </section>
+
+            <section id="tab-text" class="tab-panel hidden">
+              <div class="compact-grid">
+                <div class="card field">
+                  <div class="label">Chữ cuối khung</div>
+                  <input id="footerText" type="text" value="MY PHOTO STRIP" maxlength="60">
+                </div>
+                <div class="card field">
+                  <div class="label">Màu chữ</div>
+                  <input id="footerColor" type="color" value="#333333">
+                </div>
+              </div>
+              <div class="compact-grid">
+                <div class="card field">
+                  <div class="label">Font nhanh</div>
+                  <select id="footerFont">
+                    <option value="Arial, sans-serif">Arial</option>
+                    <option value="Verdana, sans-serif">Verdana</option>
+                    <option value="Tahoma, sans-serif">Tahoma</option>
+                    <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
+                    <option value="Georgia, serif">Georgia</option>
+                    <option value="'Times New Roman', serif">Times New Roman</option>
+                    <option value="'Courier New', monospace">Courier New</option>
+                    <option value="'Comic Sans MS', cursive">Comic Sans</option>
+                  </select>
+                </div>
+                <div class="card field">
+                  <div class="label">Font từ máy tính</div>
+                  <div class="font-import-row">
+                    <input id="importedFontLabel" type="text" placeholder="Chưa nhập font" readonly>
+                    <button id="uploadFontBtn" class="btn soft small" type="button">Nhập font</button>
+                  </div>
+                  <input id="fontFileInput" type="file" accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2" class="hidden">
+                </div>
+              </div>
+              <div class="compact-grid">
+                <div class="card field">
+                  <div class="label">Cỡ chữ</div>
+                  <div class="slider-row"><input id="fontSizeRange" type="range" min="18" max="80" value="34"><span id="fontSizeValue">34</span></div>
+                </div>
+                <div class="card field">
+                  <div class="label">Vị trí ngang chữ</div>
+                  <div class="slider-row"><input id="footerXRange" type="range" min="0.05" max="0.95" step="0.01" value="0.50"><span id="footerXValue">0.50</span></div>
+                </div>
+              </div>
+              <div class="compact-grid">
+                <div class="card field">
+                  <div class="label">Vị trí dọc chữ</div>
+                  <div class="slider-row"><input id="footerYRange" type="range" min="0.05" max="0.98" step="0.01" value="0.94"><span id="footerYValue">0.94</span></div>
+                </div>
+                <div class="card">
+                  <div class="tap-note">Chữ luôn nằm lớp trên cùng. Bạn có thể kéo trực tiếp chữ trên preview hoặc chạm vào preview để đặt vị trí mới.</div>
+                </div>
+              </div>
+
+              <div class="compact-grid legacy-slot-tools">
+                <div class="card field">
+                  <div class="label">Zoom ô đang chọn</div>
+                  <div class="slider-row"><input id="slotZoomRange" type="range" min="0.6" max="2.5" step="0.01" value="1"><span id="slotZoomValue">1.00</span></div>
+                </div>
+                <div class="card field">
+                  <div class="label">Dịch ngang</div>
+                  <div class="slider-row"><input id="slotOffsetXRange" type="range" min="-1" max="1" step="0.01" value="0"><span id="slotOffsetXValue">0.00</span></div>
+                </div>
+              </div>
+              <div class="compact-grid legacy-slot-tools">
+                <div class="card field">
+                  <div class="label">Dịch dọc</div>
+                  <div class="slider-row"><input id="slotOffsetYRange" type="range" min="-1" max="1" step="0.01" value="0"><span id="slotOffsetYValue">0.00</span></div>
+                </div>
+                <div class="card field">
+                  <div class="label">Xoay nhẹ</div>
+                  <div class="slider-row"><input id="slotRotateRange" type="range" min="-12" max="12" step="0.1" value="0"><span id="slotRotateValue">0.0°</span></div>
+                </div>
+              </div>
+              <div class="compact-grid legacy-slot-tools">
+                <button id="resetSlotBtn" class="btn soft small" type="button">Reset ô hiện tại</button>
+                <button id="resetAllSlotsBtn" class="btn soft small" type="button">Reset tất cả ô</button>
+              </div>
+              <div class="compact-grid">
+                <button id="centerTextBtn" class="btn soft small" type="button">Đưa chữ về giữa dưới</button>
+                <button id="resetTextBtn" class="btn soft small" type="button">Reset chữ</button>
+              </div>
+            </section>
+
+            <section id="tab-video" class="tab-panel hidden">
+              <div class="video-card">
+                <div class="compact-grid">
+                  <button id="buildRecapBtn" class="btn accent small" type="button">Tạo video recap</button>
+                  <button id="downloadRecapBtn" class="btn soft small" type="button">Tải video recap</button>
+                </div>
+                <div class="video-preview-shell"><video id="recapVideo" class="video-preview" controls playsinline></video></div>
+                <div id="recapStatus" class="recap-status">Chưa có video recap. Video sẽ tự đổi ngang hoặc dọc theo layout đang chọn.</div>
+              </div>
+            </section>
+          </div>
+
+          <div class="footer-actions">
+            <button id="generateBtn" class="btn accent" type="button">Tạo ảnh</button>
+            <button id="downloadBtnBottom" class="btn primary" type="button">Tải PNG</button>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  <div id="slotButtons" class="hidden"></div>
+  <canvas id="captureCanvas" class="hidden"></canvas>
+  <canvas id="exportCanvas" class="hidden"></canvas>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const video = $('video');
+    const captureCanvas = $('captureCanvas');
+    const captureCtx = captureCanvas.getContext('2d', { alpha: false });
+    const exportCanvas = $('exportCanvas');
+    const exportCtx = exportCanvas.getContext('2d', { alpha: false, willReadFrequently: true });
+    captureCtx.imageSmoothingQuality = 'high';
+    exportCtx.imageSmoothingQuality = 'high';
+
+    const layouts = {
+      strip4_portrait: { id:'strip4_portrait', name:'1x4 strips dọc', count:4, export:{ w:1500, h:2400 } },
+      strip8_portrait: { id:'strip8_portrait', name:'2x4 strips dọc', count:8, export:{ w:1500, h:2400 } },
+      grid6_portrait: { id:'grid6_portrait', name:'2x3 grid dọc', count:6, export:{ w:1800, h:2400 } },
+      grid4_square: { id:'grid4_square', name:'2x2 vuông', count:4, export:{ w:1800, h:1800 } },
+      single_portrait: { id:'single_portrait', name:'1 ảnh dọc', count:1, export:{ w:1500, h:2100 } },
+      single_landscape: { id:'single_landscape', name:'1 ảnh ngang', count:1, export:{ w:2100, h:1500 } }
+    };
+
+    const state = {
+      stream:null,
+      devices:[],
+      deviceIndex:0,
+      mirror:true,
+      timer:3,
+      quality:'hd',
+      layout:'strip8_portrait',
+      fitMode:'contain_blur',
+      slotBgColor:'#ffffff',
+      autoRotate:true,
+      frameOverlay:true,
+      smartFrame:true,
+      autoHoleMode:true,
+      selectedFrameSlotCount:0,
+      frameSlotCache:{},
+      removeWhite:true,
+      stickersEnabled:true,
+      footerText:'MY PHOTO STRIP',
+      footerColor:'#333333',
+      footerFont:'Arial, sans-serif',
+      footerSize:34,
+      footerBottom:40,
+      footerX:0.5,
+      footerY:0.94,
+      importedFontName:'',
+      importedFontSrc:'',
+      recapUrl:'',
+      recapMime:'video/webm',
+      shots:[],
+      selectedShotIds:[],
+      selectedFrameId:'none',
+      frameCategoryFilter:'current',
+      selectedStickerIds:[],
+      activeStickerIndex:0,
+      activeTab:'layout',
+      activeSlotIndex:0,
+      lastGenerated:'',
+      slotTransforms:[],
+      stickerTransforms:[],
+      cameraFx:{
+        timestamp:true,
+        lightLeak:true,
+        vignette:true,
+        grain:true,
+        chromatic:true,
+        lightLeakStrength:0.35,
+        vignetteStrength:0.32,
+        grainStrength:0.14,
+        chromaticStrength:0.18
+      },
+      frames:[
+        { id:'none', name:'Không khung', src:null, category:'all' },
+        { id:'builtin_soft', name:'Hồng nhẹ', built:true, category:'strip8_portrait', colors:{ border:'#fbcfe8', bg:'#fff', text:'#333' } },
+        { id:'builtin_dark', name:'Đen sang', built:true, category:'strip8_portrait', colors:{ border:'#374151', bg:'#111827', text:'#fff' } }
+      ],
+      stickers:[
+        { id:'s1', name:'✨', type:'emoji', value:'✨' },
+        { id:'s2', name:'💖', type:'emoji', value:'💖' },
+        { id:'s3', name:'🎀', type:'emoji', value:'🎀' },
+        { id:'s4', name:'🌷', type:'emoji', value:'🌷' },
+        { id:'s5', name:'⭐', type:'emoji', value:'⭐' }
+      ]
+    };
+
+    const defaultFrames = state.frames.map(item => ({ ...item }));
+    const defaultStickers = state.stickers.map(item => ({ ...item }));
+    const DB_NAME = 'photobooth_pro_max_v8_db';
+    const DB_VERSION = 1;
+    let dbPromise = null;
+
+    function openAssetDB(){
+      if(dbPromise) return dbPromise;
+      dbPromise = new Promise((resolve, reject) => {
+        if(!window.indexedDB){ reject(new Error('IndexedDB not supported')); return; }
+        const req = indexedDB.open(DB_NAME, DB_VERSION);
+        req.onupgradeneeded = () => {
+          const db = req.result;
+          if(!db.objectStoreNames.contains('frames')) db.createObjectStore('frames', { keyPath:'id' });
+          if(!db.objectStoreNames.contains('stickers')) db.createObjectStore('stickers', { keyPath:'id' });
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error || new Error('Không mở được bộ nhớ khung/sticker'));
+      });
+      return dbPromise;
+    }
+
+    async function dbGetAll(storeName){
+      const db = await openAssetDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(storeName, 'readonly');
+        const req = tx.objectStore(storeName).getAll();
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror = () => reject(req.error || new Error('Không đọc được dữ liệu'));
+      });
+    }
+
+    async function dbPut(storeName, value){
+      const db = await openAssetDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(storeName, 'readwrite');
+        tx.objectStore(storeName).put(value);
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => reject(tx.error || new Error('Không lưu được dữ liệu'));
+      });
+    }
+
+    async function dbDelete(storeName, key){
+      const db = await openAssetDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(storeName, 'readwrite');
+        tx.objectStore(storeName).delete(key);
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => reject(tx.error || new Error('Không xóa được dữ liệu'));
+      });
+    }
+
+    async function migrateLegacyAssetsToDB(){
+      try{
+        const raw = localStorage.getItem('photobooth_pro_max_v65');
+        if(!raw) return;
+        const data = JSON.parse(raw);
+        const legacyFrames = Array.isArray(data.frames) ? data.frames.filter(item => item && item.src) : [];
+        const legacyStickers = Array.isArray(data.stickers) ? data.stickers.filter(item => item && item.src) : [];
+        for(const item of legacyFrames) await dbPut('frames', item);
+        for(const item of legacyStickers) await dbPut('stickers', item);
+      }catch(err){ console.error(err); }
+    }
+
+    async function loadPersistentAssets(){
+      try{
+        await migrateLegacyAssetsToDB();
+        const [savedFrames, savedStickers] = await Promise.all([dbGetAll('frames'), dbGetAll('stickers')]);
+        state.frames = [...defaultFrames, ...savedFrames.filter(item => item && item.src)];
+        state.stickers = [...defaultStickers, ...savedStickers.filter(item => item && item.src)];
+      }catch(err){
+        console.error(err);
+      }
+    }
+
+    function requiredCount(){
+      if(state.autoHoleMode && state.selectedFrameId !== 'none' && Number(state.selectedFrameSlotCount) > 0) return Number(state.selectedFrameSlotCount);
+      return layouts[state.layout].count;
+    }
+    function currentLayout(){ return layouts[state.layout]; }
+    function isAndroid(){ return /Android/i.test(navigator.userAgent || ''); }
+    function secureContextOk(){ return window.isSecureContext || location.hostname === 'localhost' || location.hostname === '127.0.0.1'; }
+
+    async function detectFrameSlotCount(frame){
+      if(!frame || !frame.src) return 0;
+      try{
+        const frameImg = await loadImage(frame.src).catch(() => null);
+        if(!frameImg) return 0;
+        const testW = frameImg.naturalWidth || frameImg.width || 1200;
+        const testH = frameImg.naturalHeight || frameImg.height || 1800;
+        const canvas = document.createElement('canvas');
+        canvas.width = testW;
+        canvas.height = testH;
+        const ctx = canvas.getContext('2d', { alpha:true, willReadFrequently:true });
+        ctx.drawImage(frameImg, 0, 0, testW, testH);
+        removeWhiteFromFrame(canvas);
+        const boxes = getFrameMaskBoxes(canvas, 0);
+        return Array.isArray(boxes) ? boxes.length : 0;
+      }catch(err){
+        console.error('detectFrameSlotCount failed', err);
+        return 0;
+      }
+    }
+
+    async function refreshAutoHoleInfo(){
+      const frame = state.frames.find(f => f.id === state.selectedFrameId);
+      let count = 0;
+      if(state.autoHoleMode && frame && frame.src){
+        if(Number.isFinite(state.frameSlotCache[frame.id])){
+          count = Number(state.frameSlotCache[frame.id]) || 0;
+        }else{
+          count = await detectFrameSlotCount(frame);
+          state.frameSlotCache[frame.id] = count;
+        }
+      }
+      state.selectedFrameSlotCount = count;
+      state.selectedShotIds = state.selectedShotIds.filter(id => state.shots.some(s => s.id === id)).slice(0, requiredCount());
+      ensureSlotTransforms();
+      renderSelectionStatus();
+      renderGallery();
+      renderSlotButtons();
+      ensureStickerTransforms();
+      renderStickerLayers();
+      syncStickerControls();
+      if(state.selectedShotIds.length === requiredCount()) queueGenerate();
+      else{
+        state.lastGenerated = '';
+        if($('previewImage')) $('previewImage').src = '';
+        if($('previewEmpty')) $('previewEmpty').innerHTML = `Bạn cần chọn đủ ${requiredCount()} ảnh để tạo ảnh.`;
+        syncStickerDragLayer();
+      }
+      saveSession();
+    }
+
+    function defaultTransform(){ return { zoom:1, x:0, y:0, rotate:0 }; }
+    function ensureSlotTransforms(){
+      const n = requiredCount();
+      const arr = Array.from({length:n}, (_,i) => state.slotTransforms[i] ? { ...state.slotTransforms[i] } : defaultTransform());
+      state.slotTransforms = arr;
+      if(state.activeSlotIndex >= n) state.activeSlotIndex = 0;
+    }
+
+    function defaultStickerTransform(i=0){
+      const presets = [
+        { x:0.18, y:0.12, scale:0.11, rotate:-8 },
+        { x:0.82, y:0.12, scale:0.11, rotate:8 },
+        { x:0.2, y:0.84, scale:0.11, rotate:-6 },
+        { x:0.8, y:0.84, scale:0.11, rotate:6 },
+        { x:0.5, y:0.1, scale:0.11, rotate:0 },
+        { x:0.5, y:0.9, scale:0.11, rotate:0 }
+      ];
+      return { ...(presets[i % presets.length]) };
+    }
+
+    function ensureStickerTransforms(){
+      const n = state.selectedStickerIds.length;
+      state.stickerTransforms = Array.from({length:n}, (_,i) => state.stickerTransforms[i] ? { ...state.stickerTransforms[i] } : defaultStickerTransform(i));
+      if(state.activeStickerIndex >= Math.max(1, n)) state.activeStickerIndex = Math.max(0, n-1);
+    }
+
+    function renderSelectionStatus(){
+      const el = $('selectionStatus');
+      if(el) el.textContent = `${state.selectedShotIds.length}/${requiredCount()} ảnh được chọn`;
+    }
+
+    function frameCategoryOptions(){
+      return [
+        { value:'current', label:'Khung theo layout hiện tại' },
+        { value:'all', label:'Tất cả khung' },
+        ...Object.values(layouts).map(item => ({ value:item.id, label:item.name }))
+      ];
+    }
+
+    function renderFrameCategoryOptions(){
+      const el = $('frameCategorySelect');
+      if(!el) return;
+      el.innerHTML = frameCategoryOptions().map(opt => `<option value="${opt.value}">${escapeHtml(opt.label)}</option>`).join('');
+      el.value = state.frameCategoryFilter;
+    }
+
+    function setStatus(){
+      renderSelectionStatus();
+      $('layoutStatus').textContent = `Layout: ${currentLayout().name}`;
+      $('cameraStatus').textContent = state.stream ? 'Camera đang hoạt động' : (isAndroid() ? 'Nên mở bằng localhost để dùng camera' : 'Chưa bật camera');
+    }
+
+    function renderLayouts(){
+      const root = $('layoutList');
+      root.innerHTML = Object.values(layouts).map(item => `
+        <button class="mini-btn ${state.layout===item.id?'active':''}" data-layout="${item.id}" type="button">${item.name}</button>
+      `).join('');
+      root.querySelectorAll('[data-layout]').forEach(btn => btn.onclick = () => {
+        state.layout = btn.dataset.layout;
+        ensureSlotTransforms();
+        trimSelection();
+        renderLayouts();
+        renderGallery();
+        renderSlotButtons();
+        syncSlotControls();
+        setStatus();
+        queueGenerate();
+      });
+    }
+
+    function renderFrames(){
+      const root = $('frameGallery');
+      const filter = state.frameCategoryFilter === 'current' ? state.layout : state.frameCategoryFilter;
+      const frameItems = state.frames.filter(item => item.id === 'none' || filter === 'all' || item.category === 'all' || item.category === filter);
+      root.innerHTML = frameItems.map(item => {
+        const selected = state.selectedFrameId===item.id ? 'active' : '';
+        const locked = item.id === 'none' || !item.src ? 'data-locked="1"' : '';
+        const preview = item.src ? `<img src="${item.src}" alt="${escapeHtml(item.name)}">` : `<div class="asset-name">${escapeHtml(item.name)}</div>`;
+        return `
+          <div class="asset-item ${selected}" data-frame-card="${item.id}">
+            <div class="asset-thumb" data-frame="${item.id}" type="button">${preview}</div>
+            <div class="asset-name">${escapeHtml(item.name || 'Khung')}</div>
+            <div class="asset-actions">
+              <button data-frame-rename="${item.id}" ${locked}>Đổi tên</button>
+              <button class="danger" data-frame-delete="${item.id}" ${locked}>Xóa</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+      root.querySelectorAll('[data-frame]').forEach(btn => btn.onclick = () => {
+        state.selectedFrameId = btn.dataset.frame;
+        renderFrames();
+        saveSession();
+        queueGenerate();
+      });
+      root.querySelectorAll('[data-frame-rename]').forEach(btn => btn.onclick = async (e) => {
+        e.stopPropagation();
+        if(btn.hasAttribute('data-locked')) return;
+        const item = state.frames.find(x => x.id === btn.dataset.frameRename);
+        if(!item) return;
+        const next = prompt('Đổi tên khung:', item.name || 'Khung');
+        if(!next || !next.trim()) return;
+        item.name = next.trim();
+        await dbPut('frames', item);
+        renderFrames();
+        saveSession();
+      });
+      root.querySelectorAll('[data-frame-delete]').forEach(btn => btn.onclick = async (e) => {
+        e.stopPropagation();
+        if(btn.hasAttribute('data-locked')) return;
+        const id = btn.dataset.frameDelete;
+        const item = state.frames.find(x => x.id === id);
+        if(!item) return;
+        if(!confirm(`Xóa khung "${item.name || 'Khung'}"?`)) return;
+        state.frames = state.frames.filter(x => x.id !== id);
+        if(state.selectedFrameId === id) state.selectedFrameId = 'none';
+        await dbDelete('frames', id);
+        renderFrames();
+        saveSession();
+        queueGenerate();
+      });
+    }
+
+    function renderStickers(){
+      const root = $('stickerGallery');
+      root.innerHTML = state.stickers.map(item => {
+        const selected = state.selectedStickerIds.includes(item.id) ? 'active' : '';
+        const locked = item.type === 'emoji' ? 'data-locked="1"' : '';
+        const preview = item.type==='emoji' ? `<div style="font-size:30px">${item.value}</div>` : `<img src="${item.src}" alt="${escapeHtml(item.name)}">`;
+        return `
+          <div class="asset-item ${selected}" data-sticker-card="${item.id}">
+            <div class="asset-thumb" data-sticker="${item.id}">${preview}</div>
+            <div class="asset-name">${escapeHtml(item.name || item.value || 'Sticker')}</div>
+            <div class="asset-actions">
+              <button data-sticker-rename="${item.id}" ${locked}>Đổi tên</button>
+              <button class="danger" data-sticker-delete="${item.id}" ${locked}>Xóa</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+      root.querySelectorAll('[data-sticker]').forEach(btn => btn.onclick = () => {
+        const id = btn.dataset.sticker;
+        const i = state.selectedStickerIds.indexOf(id);
+        if(i >= 0) state.selectedStickerIds.splice(i,1);
+        else state.selectedStickerIds.push(id);
+        ensureStickerTransforms();
+        renderStickers();
+        renderStickerLayers();
+        syncStickerControls();
+        renderStickerOverlay();
+        saveSession();
+        queueGenerate();
+      });
+      root.querySelectorAll('[data-sticker-rename]').forEach(btn => btn.onclick = async (e) => {
+        e.stopPropagation();
+        if(btn.hasAttribute('data-locked')) return;
+        const item = state.stickers.find(x => x.id === btn.dataset.stickerRename);
+        if(!item) return;
+        const next = prompt('Đổi tên sticker:', item.name || 'Sticker');
+        if(!next || !next.trim()) return;
+        item.name = next.trim();
+        await dbPut('stickers', item);
+        renderStickers();
+        renderStickerLayers();
+        renderStickerOverlay();
+        saveSession();
+      });
+      root.querySelectorAll('[data-sticker-delete]').forEach(btn => btn.onclick = async (e) => {
+        e.stopPropagation();
+        if(btn.hasAttribute('data-locked')) return;
+        const id = btn.dataset.stickerDelete;
+        const item = state.stickers.find(x => x.id === id);
+        if(!item) return;
+        if(!confirm(`Xóa sticker "${item.name || 'Sticker'}"?`)) return;
+        const selectedIndex = state.selectedStickerIds.indexOf(id);
+        state.stickers = state.stickers.filter(x => x.id !== id);
+        if(selectedIndex >= 0){
+          state.selectedStickerIds.splice(selectedIndex, 1);
+          state.stickerTransforms.splice(selectedIndex, 1);
+          state.activeStickerIndex = Math.max(0, Math.min(state.activeStickerIndex, state.selectedStickerIds.length - 1));
+        }
+        await dbDelete('stickers', id);
+        renderStickers();
+        renderStickerLayers();
+        syncStickerControls();
+        renderStickerOverlay();
+        saveSession();
+        queueGenerate();
+      });
+    }
+
+    function renderStickerLayers(){
+      const root = $('stickerLayerButtons');
+      if(!root) return;
+      ensureStickerTransforms();
+      root.innerHTML = state.selectedStickerIds.map((id, index) => {
+        const item = state.stickers.find(x => x.id === id);
+        const label = item ? (item.name || item.value || `Sticker ${index+1}`) : `Sticker ${index+1}`;
+        return `<button class="slot-btn ${state.activeStickerIndex===index?'active':''}" data-sticker-layer="${index}" type="button">${escapeHtml(label).slice(0,12)}</button>`;
+      }).join('') || '<div class="small-note">Hãy chọn sticker để chỉnh vị trí.</div>';
+      root.querySelectorAll('[data-sticker-layer]').forEach(btn => btn.onclick = () => {
+        state.activeStickerIndex = Number(btn.dataset.stickerLayer);
+        renderStickerLayers();
+        syncStickerControls();
+      });
+    }
+
+    function syncStickerControls(){
+      ensureStickerTransforms();
+      const active = state.stickerTransforms[state.activeStickerIndex] || defaultStickerTransform(state.activeStickerIndex);
+      if($('stickerXRange')) $('stickerXRange').value = active.x;
+      if($('stickerYRange')) $('stickerYRange').value = active.y;
+      if($('stickerScaleRange')) $('stickerScaleRange').value = active.scale;
+      if($('stickerRotateRange')) $('stickerRotateRange').value = active.rotate;
+      if($('stickerXValue')) $('stickerXValue').textContent = Number(active.x).toFixed(2);
+      if($('stickerYValue')) $('stickerYValue').textContent = Number(active.y).toFixed(2);
+      if($('stickerScaleValue')) $('stickerScaleValue').textContent = Number(active.scale).toFixed(2);
+      if($('stickerRotateValue')) $('stickerRotateValue').textContent = Math.round(Number(active.rotate)) + '°';
+      renderStickerOverlay();
+    }
+
+    function updateCurrentSticker(key, value){
+      ensureStickerTransforms();
+      if(!state.stickerTransforms[state.activeStickerIndex]) state.stickerTransforms[state.activeStickerIndex] = defaultStickerTransform(state.activeStickerIndex);
+      state.stickerTransforms[state.activeStickerIndex][key] = value;
+      syncStickerControls();
+      queueGenerate();
+    }
+
+
+
+    function renderTextOverlay(){
+      const layer = $('textDragLayer');
+      const stack = $('previewStack');
+      if(!layer || !stack) return;
+      const value = (state.footerText || '').trim();
+      if(!state.lastGenerated || !value){
+        layer.innerHTML = '';
+        return;
+      }
+      layer.innerHTML = `<div id="dragTextLabel" class="drag-text" style="left:${(state.footerX || 0.5) * 100}%;top:${(state.footerY || 0.94) * 100}%;font-size:${Math.max(16, Math.round((state.footerSize || 34) * 0.55))}px;color:${state.footerColor};font-family:${state.footerFont};">${escapeHtml(value)}</div>`;
+      bindTextDrag();
+    }
+
+    function setTextPosition(x, y){
+      state.footerX = Math.max(0.05, Math.min(0.95, Number(x)));
+      state.footerY = Math.max(0.05, Math.min(0.98, Number(y)));
+      if($('footerXRange')) $('footerXRange').value = state.footerX;
+      if($('footerYRange')) $('footerYRange').value = state.footerY;
+      if($('footerXValue')) $('footerXValue').textContent = Number(state.footerX).toFixed(2);
+      if($('footerYValue')) $('footerYValue').textContent = Number(state.footerY).toFixed(2);
+      renderTextOverlay();
+      saveSession();
+      queueGenerate();
+    }
+
+    function updateTextPositionFromPointer(clientX, clientY){
+      const stack = $('previewStack');
+      if(!stack) return;
+      const rect = stack.getBoundingClientRect();
+      if(!rect.width || !rect.height) return;
+      setTextPosition((clientX - rect.left) / rect.width, (clientY - rect.top) / rect.height);
+    }
+
+    function bindTextDrag(){
+      const label = $('dragTextLabel');
+      const stack = $('previewStack');
+      if(!label || !stack) return;
+      label.onpointerdown = (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        updateTextPositionFromPointer(ev.clientX, ev.clientY);
+        const onMove = (e2) => updateTextPositionFromPointer(e2.clientX, e2.clientY);
+        const onUp = () => {
+          window.removeEventListener('pointermove', onMove);
+          window.removeEventListener('pointerup', onUp);
+        };
+        window.addEventListener('pointermove', onMove);
+        window.addEventListener('pointerup', onUp);
+      };
+      stack.onpointerdown = (ev) => {
+        if(ev.target === label || ev.target.closest('.drag-sticker')) return;
+        updateTextPositionFromPointer(ev.clientX, ev.clientY);
+      };
+    }
+
+    async function loadImportedFontFromDataURL(name, src){
+      if(!name || !src || !('FontFace' in window)) return false;
+      try{
+        const family = 'UserFont_' + name.replace(/[^a-z0-9]+/gi, '_');
+        const fontFace = new FontFace(family, `url(${src})`);
+        await fontFace.load();
+        document.fonts.add(fontFace);
+        state.importedFontName = name;
+        state.importedFontSrc = src;
+        state.footerFont = `'${family}', Arial, sans-serif`;
+        if($('importedFontLabel')) $('importedFontLabel').value = name;
+        if($('footerFont')) $('footerFont').value = 'Arial, sans-serif';
+        saveSession();
+        return true;
+      }catch(err){
+        console.error(err);
+        alert('Không nhập được font này. Hãy thử file TTF, OTF, WOFF hoặc WOFF2 khác.');
+        return false;
+      }
+    }
+
+    async function buildRecapVideo(){
+      const shots = state.selectedShotIds.length ? state.selectedShotIds.map(id => state.shots.find(s => s.id === id)).filter(Boolean) : state.shots.slice(0, Math.max(1, requiredCount()));
+      if(!shots.length){
+        if($('recapStatus')) $('recapStatus').textContent = 'Chưa có ảnh để tạo video recap.';
+        updateRecapViews();
+        return;
+      }
+      if($('recapStatus')) $('recapStatus').textContent = 'Đang tạo video recap...';
+      try{
+        const imgs = await Promise.all(shots.map(s => loadImage(s.src)));
+        const canvas = document.createElement('canvas');
+        const recapSize = getRecapCanvasSize();
+        canvas.width = recapSize.w;
+        canvas.height = recapSize.h;
+        const ctx = canvas.getContext('2d', { alpha:false });
+        const stream = canvas.captureStream(30);
+        const mimeCandidates = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
+        const mimeType = mimeCandidates.find(m => window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(m)) || 'video/webm';
+        const recorder = new MediaRecorder(stream, { mimeType });
+        const chunks = [];
+        recorder.ondataavailable = (e) => { if(e.data && e.data.size) chunks.push(e.data); };
+        const stopped = new Promise(resolve => recorder.onstop = resolve);
+        recorder.start();
+        const holdFrames = 36;
+        const labelY = canvas.height - Math.max(60, Math.round(canvas.height * 0.045));
+        for(let i=0;i<imgs.length;i++){
+          const img = imgs[i];
+          for(let frameIndex=0; frameIndex<holdFrames; frameIndex++){
+            const progress = frameIndex / Math.max(1, holdFrames - 1);
+            ctx.fillStyle = '#111';
+            ctx.fillRect(0,0,canvas.width,canvas.height);
+            drawFitImage(ctx, img, { x:0, y:0, w:canvas.width, h:canvas.height }, { zoom:1.02 + progress * 0.05, x:0, y:0, rotate:0 }, { mode:'contain_blur' });
+            ctx.fillStyle = 'rgba(0,0,0,.22)';
+            ctx.fillRect(0, canvas.height - Math.round(canvas.height * 0.12), canvas.width, Math.round(canvas.height * 0.12));
+            ctx.fillStyle = 'rgba(255,255,255,.95)';
+            ctx.font = `700 ${Math.max(28, Math.round(Math.min(canvas.width, canvas.height) * 0.035))}px Arial, sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(`Photo ${i+1}/${imgs.length}`, canvas.width/2, labelY);
+            await new Promise(r => setTimeout(r, 33));
+          }
+        }
+        recorder.stop();
+        await stopped;
+        const blob = new Blob(chunks, { type:mimeType });
+        if(state.recapUrl) URL.revokeObjectURL(state.recapUrl);
+        state.recapUrl = URL.createObjectURL(blob);
+        state.recapMime = mimeType;
+        updateRecapViews();
+        if($('recapStatus')) $('recapStatus').textContent = `Đã tạo video recap ${recapSize.mode === 'landscape' ? 'ngang' : (recapSize.mode === 'portrait' ? 'dọc' : 'vuông')} từ ${imgs.length} ảnh.`;
+      }catch(err){
+        console.error(err);
+        if($('recapStatus')) $('recapStatus').textContent = 'Không tạo được video recap trên trình duyệt này.';
+      }
+    }
+
+    function tryPlayReviewRecap(){
+      const el = $('recapVideoReview');
+      if(!el || !state.recapUrl) return;
+      const playPromise = el.play?.();
+      if(playPromise && typeof playPromise.catch === 'function') playPromise.catch(() => {});
+    }
+
+    function downloadRecap(){
+      if(!state.recapUrl){
+        alert('Chưa có video recap. Hãy tạo video trước.');
+        return;
+      }
+      const a = document.createElement('a');
+      a.href = state.recapUrl;
+      a.download = `photobooth-recap-${currentLayout().id}.webm`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    function getRecapCanvasSize(){
+      const exp = currentLayout().export || { w:1080, h:1920 };
+      if(Math.abs(exp.w - exp.h) < 20) return { w:1400, h:1400, mode:'square' };
+      return exp.w > exp.h ? { w:1920, h:1080, mode:'landscape' } : { w:1080, h:1920, mode:'portrait' };
+    }
+
+    function getRecapTransferText(){
+      if(!state.recapUrl) return '';
+      if(/^https?:/i.test(location.href)){
+        return `${location.href.split('#')[0]}#video`;
+      }
+      return '';
+    }
+
+    function renderRecapQr(){
+      const preview = $('recapQrPreview');
+      const note = $('recapQrNote');
+      if(!preview || !note) return;
+      const transferText = getRecapTransferText();
+      if(!state.recapUrl){
+        preview.innerHTML = '<span class="small-note">QR</span>';
+        note.textContent = 'QR tải video sẽ hiện ở đây khi video recap đã sẵn sàng.';
+        return;
+      }
+      if(!transferText){
+        preview.innerHTML = '<span class="small-note">QR</span>';
+        note.textContent = 'Đang mở bằng file offline nên QR không thể mang trực tiếp video sang điện thoại. Hãy bấm Tải video trên thiết bị này, hoặc chạy file qua localhost/LAN để dùng QR.';
+        return;
+      }
+      const qrSrc = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' + encodeURIComponent(transferText);
+      preview.innerHTML = `<img alt="QR video recap" src="${qrSrc}">`;
+      note.textContent = 'Quét QR để mở trang đang chạy trên điện thoại. Cách này hoạt động tốt khi web được mở bằng localhost/LAN hoặc hosting cùng mạng.';
+    }
+
+    function updateRecapViews(){
+      const hasRecap = !!state.recapUrl;
+      const layout = currentLayout();
+      const size = getRecapCanvasSize();
+      const orientation = size.mode === 'landscape' ? 'landscape' : (size.mode === 'portrait' ? 'portrait' : 'square');
+      if($('recapVideo')){
+        $('recapVideo').dataset.orientation = orientation;
+        if(hasRecap){ $('recapVideo').src = state.recapUrl; $('recapVideo').load(); }
+        else $('recapVideo').removeAttribute('src');
+      }
+      if($('recapVideoReview')){
+        $('recapVideoReview').dataset.orientation = orientation;
+        if(hasRecap){ $('recapVideoReview').src = state.recapUrl; $('recapVideoReview').load(); }
+        else $('recapVideoReview').removeAttribute('src');
+      }
+      if($('reviewVideoBox')) $('reviewVideoBox').classList.toggle('hidden', !hasRecap);
+      if($('reviewVideoMeta')) $('reviewVideoMeta').textContent = hasRecap ? `Đang xem recap ${size.mode === 'landscape' ? 'ngang' : (size.mode === 'portrait' ? 'dọc' : 'vuông')} theo layout ${layout.name}.` : 'Video recap sẽ hiện ở đây sau khi tạo.';
+      renderRecapQr();
+      requestAnimationFrame(tryPlayReviewRecap);
+    }
+
+    function renderStickerOverlay(){
+      const layer = $('stickerDragLayer');
+      const stack = $('previewStack');
+      if(!layer || !stack) return;
+      ensureStickerTransforms();
+      if(!state.lastGenerated || !state.stickersEnabled || !state.selectedStickerIds.length){
+        layer.innerHTML = '';
+        return;
+      }
+      const rect = stack.getBoundingClientRect();
+      const width = rect.width || $('finalPreview').clientWidth || 0;
+      const height = rect.height || $('finalPreview').clientHeight || 0;
+      if(!width || !height){
+        layer.innerHTML = '';
+        return;
+      }
+      layer.innerHTML = state.selectedStickerIds.map((id, idx) => {
+        const item = state.stickers.find(x => x.id === id);
+        if(!item) return '';
+        const tf = state.stickerTransforms[idx] || defaultStickerTransform(idx);
+        const size = Math.round(Math.min(width, height) * tf.scale);
+        const left = Math.round(width * tf.x - size/2);
+        const top = Math.round(height * tf.y - size/2);
+        const body = item.type === 'emoji'
+          ? `<div class="emoji" style="font-size:${Math.max(24, Math.round(size*0.8))}px">${item.value}</div>`
+          : `<img src="${item.src}" alt="${escapeHtml(item.name || 'Sticker')}">`;
+        return `<div class="drag-sticker ${state.activeStickerIndex===idx?'active':''}" data-drag-sticker="${idx}" style="left:${left}px;top:${top}px;width:${size}px;height:${size}px;transform:rotate(${tf.rotate || 0}deg)">${body}</div>`;
+      }).join('');
+      bindStickerDrag();
+    }
+
+    function bindStickerDrag(){
+      const layer = $('stickerDragLayer');
+      const stack = $('previewStack');
+      if(!layer || !stack) return;
+      layer.querySelectorAll('[data-drag-sticker]').forEach(el => {
+        const onPointerDown = (ev) => {
+          ev.preventDefault();
+          ev.stopPropagation();
+          const idx = Number(el.dataset.dragSticker);
+          if(Number.isNaN(idx)) return;
+          state.activeStickerIndex = idx;
+          renderStickerLayers();
+          syncStickerControls();
+          const rect = stack.getBoundingClientRect();
+          const move = (clientX, clientY) => {
+            const nx = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
+            const ny = Math.min(1, Math.max(0, (clientY - rect.top) / rect.height));
+            updateCurrentSticker('x', Number(nx.toFixed(4)));
+            updateCurrentSticker('y', Number(ny.toFixed(4)));
+          };
+          move(ev.clientX, ev.clientY);
+          const onMove = (e2) => move(e2.clientX, e2.clientY);
+          const onUp = () => {
+            window.removeEventListener('pointermove', onMove);
+            window.removeEventListener('pointerup', onUp);
+            saveSession();
+            queueGenerate();
+          };
+          window.addEventListener('pointermove', onMove);
+          window.addEventListener('pointerup', onUp);
+        };
+        el.onpointerdown = onPointerDown;
+      });
+    }
+
+    function applyStickerPreset(preset){
+      const map = {
+        'top-left': { x:0.18, y:0.12 },
+        'top-right': { x:0.82, y:0.12 },
+        'center': { x:0.5, y:0.5 }
+      };
+      const picked = map[preset];
+      if(!picked) return;
+      updateCurrentSticker('x', picked.x);
+      updateCurrentSticker('y', picked.y);
+      saveSession();
+    }
+
+    function renderGallery(){
+      const root = $('photoGallery');
+      root.innerHTML = state.shots.map((shot, idx) => {
+        const selIndex = state.selectedShotIds.indexOf(shot.id);
+        return `
+          <div class="thumb ${selIndex>=0?'selected':''}" data-shot="${shot.id}">
+            <img src="${shot.src}" loading="lazy" alt="ảnh ${idx+1}">
+            <div class="badge">${selIndex>=0 ? selIndex+1 : 'Chọn'}</div>
+            <button class="remove" data-remove="${shot.id}" type="button">✕</button>
+          </div>
+        `;
+      }).join('');
+      root.querySelectorAll('[data-shot]').forEach(el => el.onclick = (e) => {
+        if(e.target.closest('[data-remove]')) return;
+        const id = el.dataset.shot;
+        const idx = state.selectedShotIds.indexOf(id);
+        if(idx >= 0) state.selectedShotIds.splice(idx,1);
+        else {
+          if(state.selectedShotIds.length >= requiredCount()) {
+            alert('Layout này chỉ chọn tối đa ' + requiredCount() + ' ảnh.');
+            return;
+          }
+          state.selectedShotIds.push(id);
+        }
+        renderGallery();
+        setStatus();
+        queueGenerate();
+      });
+      root.querySelectorAll('[data-remove]').forEach(btn => btn.onclick = (e) => {
+        e.stopPropagation();
+        const id = btn.dataset.remove;
+        state.shots = state.shots.filter(s => s.id !== id);
+        state.selectedShotIds = state.selectedShotIds.filter(x => x !== id);
+        renderGallery();
+        setStatus();
+        queueGenerate();
+      });
+    }
+
+    function renderSlotButtons(){
+      const root = $('slotButtons');
+      if(!root) return;
+      root.innerHTML = Array.from({length: requiredCount()}, (_,i) => `
+        <button class="slot-btn ${state.activeSlotIndex===i?'active':''}" data-slot="${i}" type="button">Ô ${i+1}</button>
+      `).join('');
+      root.querySelectorAll('[data-slot]').forEach(btn => btn.onclick = () => {
+        state.activeSlotIndex = Number(btn.dataset.slot);
+        renderSlotButtons();
+        syncSlotControls();
+      });
+    }
+
+    function syncSlotControls(){
+      ensureSlotTransforms();
+      const t = state.slotTransforms[state.activeSlotIndex] || defaultTransform();
+      $('slotZoomRange').value = t.zoom;
+      $('slotOffsetXRange').value = t.x;
+      $('slotOffsetYRange').value = t.y;
+      $('slotRotateRange').value = t.rotate;
+      $('slotZoomValue').textContent = Number(t.zoom).toFixed(2);
+      $('slotOffsetXValue').textContent = Number(t.x).toFixed(2);
+      $('slotOffsetYValue').textContent = Number(t.y).toFixed(2);
+      $('slotRotateValue').textContent = Number(t.rotate).toFixed(1) + '°';
+      $('fontSizeValue').textContent = String(state.footerSize);
+      if($('footerXRange')) $('footerXRange').value = Number(state.footerX || 0.5);
+      if($('footerYRange')) $('footerYRange').value = Number(state.footerY || 0.94);
+      if($('footerXValue')) $('footerXValue').textContent = Number(state.footerX || 0.5).toFixed(2);
+      if($('footerYValue')) $('footerYValue').textContent = Number(state.footerY || 0.94).toFixed(2);
+      if($('importedFontLabel')) $('importedFontLabel').value = state.importedFontName || 'Chưa nhập font';
+    }
+
+    function updateCurrentSlot(key, value){
+      ensureSlotTransforms();
+      state.slotTransforms[state.activeSlotIndex][key] = value;
+      syncSlotControls();
+      queueGenerate();
+    }
+
+    function trimSelection(){
+      state.selectedShotIds = state.selectedShotIds.filter(id => state.shots.some(s => s.id === id)).slice(0, requiredCount());
+    }
+
+    function autoSelectLatest(){
+      state.selectedShotIds = state.shots.slice(0, requiredCount()).map(s => s.id);
+      renderGallery();
+      setStatus();
+      queueGenerate();
+    }
+
+    function readFileAsDataURL(file){
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = e => resolve(e.target.result);
+        reader.onerror = () => reject(new Error('Không đọc được file.'));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function addPhotos(files){
+      for(const file of files){
+        try{
+          const src = await readFileAsDataURL(file);
+          state.shots.unshift({ id: crypto.randomUUID(), src, name:file.name || 'photo' });
+        }catch(err){ console.error(err); }
+      }
+      renderGallery();
+      setStatus();
+      queueGenerate();
+      queueRecapBuild();
+    }
+
+    async function addFrames(files){
+      for(const file of files){
+        try{
+          const src = await readFileAsDataURL(file);
+          const id = 'frame_' + crypto.randomUUID();
+          const frameItem = { id, name:file.name || 'Khung', src, category: state.layout };
+          state.frames.push(frameItem);
+          state.selectedFrameId = id;
+          await dbPut('frames', frameItem);
+        }catch(err){ console.error(err); }
+      }
+      renderFrames();
+      saveSession();
+      queueGenerate();
+    }
+
+    async function addStickers(files){
+      for(const file of files){
+        try{
+          const src = await readFileAsDataURL(file);
+          const stickerItem = { id:'sticker_' + crypto.randomUUID(), name:file.name || 'Sticker', type:'image', src };
+          state.stickers.push(stickerItem);
+          await dbPut('stickers', stickerItem);
+        }catch(err){ console.error(err); }
+      }
+      renderStickers();
+      saveSession();
+      queueGenerate();
+    }
+
+    async function listVideoDevices(){
+      if(!navigator.mediaDevices?.enumerateDevices) return;
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      state.devices = devices.filter(d => d.kind === 'videoinput');
+    }
+
+    function stopCamera(){
+      if(state.stream){
+        state.stream.getTracks().forEach(t => t.stop());
+        state.stream = null;
+      }
+      video.classList.add('hidden');
+      setStatus();
+    }
+
+    async function startCamera(deviceId){
+      if(!navigator.mediaDevices?.getUserMedia){ alert('Trình duyệt không hỗ trợ camera.'); return; }
+      if(!secureContextOk()){ alert('Camera cần chạy bằng localhost hoặc https.'); return; }
+      stopCamera();
+      try{
+        const constraints = deviceId ?
+          { video:{ deviceId:{ exact:deviceId }, width:{ ideal:1280 }, height:{ ideal:720 } }, audio:false } :
+          { video:{ facingMode:isAndroid() ? { ideal:'environment' } : 'user', width:{ ideal:1280 }, height:{ ideal:720 } }, audio:false };
+        state.stream = await navigator.mediaDevices.getUserMedia(constraints);
+        video.srcObject = state.stream;
+        await video.play();
+        video.classList.remove('hidden');
+        await listVideoDevices();
+        setStatus();
+      }catch(err){
+        console.error(err);
+        alert('Không mở được camera. Hãy cấp quyền camera cho trình duyệt.');
+      }
+    }
+
+    async function countdown(){
+      if(state.timer <= 0) return;
+      $('countdown').classList.remove('hidden');
+      for(let i = state.timer; i >= 1; i--){
+        $('countdown').textContent = i;
+        await new Promise(r => setTimeout(r, 1000));
+      }
+      $('countdown').classList.add('hidden');
+    }
+
+    function syncFxControls(){
+      const fx = state.cameraFx;
+      const pairs = [
+        ['fxLightLeakRange','fxLightLeakValue','lightLeakStrength',2],
+        ['fxVignetteRange','fxVignetteValue','vignetteStrength',2],
+        ['fxGrainRange','fxGrainValue','grainStrength',2],
+        ['fxChromaticRange','fxChromaticValue','chromaticStrength',2]
+      ];
+      pairs.forEach(([rangeId, valueId, key, digits]) => {
+        if($(rangeId)) $(rangeId).value = fx[key];
+        if($(valueId)) $(valueId).textContent = Number(fx[key]).toFixed(digits);
+      });
+      [['fxTimestampBtn','timestamp'],['fxLightLeakBtn','lightLeak'],['fxVignetteBtn','vignette'],['fxGrainBtn','grain'],['fxChromaticBtn','chromatic']].forEach(([id,key]) => {
+        if($(id)) $(id).classList.toggle('active', !!fx[key]);
+      });
+    }
+
+    function drawTimestamp(ctx, w, h){
+      const now = new Date();
+      const text = now.toLocaleDateString('vi-VN') + '  ' + now.toLocaleTimeString('vi-VN', { hour:'2-digit', minute:'2-digit' });
+      ctx.save();
+      ctx.font = `700 ${Math.max(18, Math.round(Math.min(w,h)*0.028))}px monospace`;
+      ctx.textAlign = 'right';
+      ctx.fillStyle = 'rgba(255,170,80,.95)';
+      ctx.shadowColor = 'rgba(0,0,0,.35)';
+      ctx.shadowBlur = 8;
+      ctx.fillText(text, w - Math.round(w*0.035), h - Math.round(h*0.04));
+      ctx.restore();
+    }
+
+    function applyCameraEffects(ctx, w, h){
+      const fx = state.cameraFx;
+      if(fx.chromatic && fx.chromaticStrength > 0.001){
+        const amount = Math.max(1, Math.round(Math.min(w,h) * fx.chromaticStrength * 0.014));
+        ctx.save();
+        ctx.globalAlpha = 0.14 + fx.chromaticStrength * 0.18;
+        ctx.globalCompositeOperation = 'screen';
+        ctx.drawImage(captureCanvas, -amount, 0, w, h);
+        ctx.restore();
+        ctx.save();
+        ctx.globalAlpha = 0.10 + fx.chromaticStrength * 0.16;
+        ctx.globalCompositeOperation = 'multiply';
+        ctx.drawImage(captureCanvas, amount, 0, w, h);
+        ctx.restore();
+      }
+      if(fx.lightLeak && fx.lightLeakStrength > 0.001){
+        const g = ctx.createRadialGradient(w*0.12, h*0.08, 0, w*0.12, h*0.08, Math.max(w,h)*0.85);
+        g.addColorStop(0, `rgba(255,180,130,${0.34*fx.lightLeakStrength})`);
+        g.addColorStop(0.45, `rgba(255,95,135,${0.18*fx.lightLeakStrength})`);
+        g.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.save();
+        ctx.globalCompositeOperation = 'screen';
+        ctx.fillStyle = g;
+        ctx.fillRect(0,0,w,h);
+        ctx.restore();
+      }
+      if(fx.vignette && fx.vignetteStrength > 0.001){
+        const g = ctx.createRadialGradient(w/2, h/2, Math.min(w,h)*0.18, w/2, h/2, Math.max(w,h)*0.72);
+        g.addColorStop(0, 'rgba(0,0,0,0)');
+        g.addColorStop(0.68, 'rgba(0,0,0,0)');
+        g.addColorStop(1, `rgba(0,0,0,${0.60*fx.vignetteStrength})`);
+        ctx.save();
+        ctx.fillStyle = g;
+        ctx.fillRect(0,0,w,h);
+        ctx.restore();
+      }
+      if(fx.grain && fx.grainStrength > 0.001){
+        const density = Math.max(200, Math.round(w*h*0.0024*fx.grainStrength));
+        ctx.save();
+        ctx.globalAlpha = 0.05 + fx.grainStrength * 0.22;
+        for(let i=0;i<density;i++){
+          const x = Math.random()*w;
+          const y = Math.random()*h;
+          const s = Math.random()*1.6 + 0.4;
+          const alpha = Math.random()*0.9;
+          ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+          ctx.fillRect(x,y,s,s);
+        }
+        ctx.restore();
+      }
+      if(fx.timestamp) drawTimestamp(ctx, w, h);
+    }
+
+    function resetCameraFx(){
+      state.cameraFx = {
+        timestamp:true,
+        lightLeak:true,
+        vignette:true,
+        grain:true,
+        chromatic:true,
+        lightLeakStrength:0.35,
+        vignetteStrength:0.32,
+        grainStrength:0.14,
+        chromaticStrength:0.18
+      };
+      syncFxControls();
+      saveSession();
+    }
+
+    function captureFrame(){
+      if(!state.stream){ alert('Hãy mở camera trước.'); return null; }
+      const w = video.videoWidth || 1280;
+      const h = video.videoHeight || 720;
+      captureCanvas.width = w;
+      captureCanvas.height = h;
+      captureCtx.save();
+      captureCtx.clearRect(0,0,w,h);
+      if(state.mirror){
+        captureCtx.translate(w,0);
+        captureCtx.scale(-1,1);
+      }
+      captureCtx.drawImage(video,0,0,w,h);
+      captureCtx.restore();
+      applyCameraEffects(captureCtx, w, h);
+      return captureCanvas.toDataURL('image/png');
+    }
+
+    async function captureOne(){
+      await countdown();
+      const src = captureFrame();
+      if(!src) return;
+      state.shots.unshift({ id:crypto.randomUUID(), src, name:'camera' });
+      renderGallery();
+      setStatus();
+      queueGenerate();
+      queueRecapBuild();
+    }
+
+    async function retakeLast(){
+      if(!state.shots.length){ alert('Chưa có ảnh nào để chụp lại.'); return; }
+      await countdown();
+      const src = captureFrame();
+      if(!src) return;
+      state.shots[0] = { ...state.shots[0], src };
+      renderGallery();
+      queueGenerate();
+      queueRecapBuild();
+    }
+
+    function frameConfig(){
+      return state.frames.find(f => f.id === state.selectedFrameId) || state.frames[0];
+    }
+
+    function escapeHtml(text){
+      return String(text).replace(/[&<>\"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+    }
+
+    function loadImage(src){
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error('Không tải được ảnh.'));
+        img.src = src;
+      });
+    }
+
+    function getExportSize(){
+      const base = currentLayout().export;
+      if(state.quality === 'standard') return { w: Math.round(base.w * 0.8), h: Math.round(base.h * 0.8) };
+      if(state.quality === '4k') return { w: Math.round(base.w * 1.8), h: Math.round(base.h * 1.8) };
+      return { w: base.w, h: base.h };
+    }
+
+    function getLayoutBoxes(W, H){
+      const footerSpace = Math.max(110, Math.round(H * 0.06));
+      const pad = Math.round(Math.min(W, H) * 0.045);
+      const gap = Math.round(Math.min(W, H) * 0.018);
+      const layoutId = state.layout;
+      const boxes = [];
+      if(layoutId === 'strip4_portrait'){
+        const boxW = W - pad*2;
+        const boxH = Math.floor((H - pad*2 - footerSpace - gap*3) / 4);
+        for(let r=0;r<4;r++) boxes.push({ x:pad, y:pad + r*(boxH + gap), w:boxW, h:boxH, portrait:true });
+      } else if(layoutId === 'strip8_portrait'){
+        const cols = 2, rows = 4;
+        const boxW = Math.floor((W - pad*2 - gap) / cols);
+        const boxH = Math.floor((H - pad*2 - footerSpace - gap*(rows-1)) / rows);
+        for(let r=0;r<rows;r++) for(let c=0;c<cols;c++) boxes.push({ x:pad + c*(boxW+gap), y:pad + r*(boxH+gap), w:boxW, h:boxH, portrait:true });
+      } else if(layoutId === 'grid6_portrait'){
+        const cols = 2, rows = 3;
+        const boxW = Math.floor((W - pad*2 - gap) / cols);
+        const boxH = Math.floor((H - pad*2 - footerSpace - gap*(rows-1)) / rows);
+        for(let r=0;r<rows;r++) for(let c=0;c<cols;c++) boxes.push({ x:pad + c*(boxW+gap), y:pad + r*(boxH+gap), w:boxW, h:boxH, portrait:true });
+      } else if(layoutId === 'grid4_square'){
+        const cols = 2, rows = 2;
+        const boxW = Math.floor((W - pad*2 - gap) / cols);
+        const boxH = Math.floor((H - pad*2 - footerSpace - gap) / rows);
+        for(let r=0;r<rows;r++) for(let c=0;c<cols;c++) boxes.push({ x:pad + c*(boxW+gap), y:pad + r*(boxH+gap), w:boxW, h:boxH, portrait:false });
+      } else if(layoutId === 'single_landscape'){
+        boxes.push({ x:pad, y:pad, w:W-pad*2, h:H-pad*2-footerSpace, portrait:false });
+      } else {
+        boxes.push({ x:pad, y:pad, w:W-pad*2, h:H-pad*2-footerSpace, portrait:true });
+      }
+      return { boxes, footerSpace, pad, gap };
+    }
+
+    function roundRectPath(ctx, x, y, w, h, r){
+      if(typeof ctx.roundRect === 'function') ctx.roundRect(x, y, w, h, r);
+      else {
+        ctx.moveTo(x+r, y);
+        ctx.arcTo(x+w, y, x+w, y+h, r);
+        ctx.arcTo(x+w, y+h, x, y+h, r);
+        ctx.arcTo(x, y+h, x, y, r);
+        ctx.arcTo(x, y, x+w, y, r);
+      }
+    }
+
+    function getPreparedSource(img, wantPortrait){
+      let source = img;
+      let iw = img.width, ih = img.height;
+      const isPortrait = ih >= iw;
+      if(state.autoRotate && (wantPortrait !== isPortrait)){
+        const off = document.createElement('canvas');
+        off.width = ih;
+        off.height = iw;
+        const o = off.getContext('2d');
+        o.translate(off.width/2, off.height/2);
+        o.rotate(Math.PI/2);
+        o.drawImage(img, -iw/2, -ih/2);
+        source = off;
+        iw = source.width;
+        ih = source.height;
+      }
+      return { source, iw, ih };
+    }
+
+
+
+    const focusCache = new Map();
+    function getImageFocusInfo(img){
+      const cacheKey = (img.src || '') + '|' + img.width + 'x' + img.height;
+      if(focusCache.has(cacheKey)) return focusCache.get(cacheKey);
+      try{
+        const sampleMax = 160;
+        const scale = Math.min(1, sampleMax / Math.max(img.width || 1, img.height || 1));
+        const w = Math.max(24, Math.round((img.width || 1) * scale));
+        const h = Math.max(24, Math.round((img.height || 1) * scale));
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        const x = c.getContext('2d', { willReadFrequently:true });
+        x.drawImage(img, 0, 0, w, h);
+        const d = x.getImageData(0, 0, w, h).data;
+        let sum = 0, mx = 0, my = 0;
+        let minX = w, minY = h, maxX = 0, maxY = 0;
+        for(let yy=1; yy<h-1; yy++){
+          for(let xx=1; xx<w-1; xx++){
+            const i = (yy*w + xx) * 4;
+            const l = (d[i] + d[i+1] + d[i+2]) / 3;
+            const il = (d[(yy*w + (xx-1))*4] + d[(yy*w + (xx-1))*4 + 1] + d[(yy*w + (xx-1))*4 + 2]) / 3;
+            const ir = (d[(yy*w + (xx+1))*4] + d[(yy*w + (xx+1))*4 + 1] + d[(yy*w + (xx+1))*4 + 2]) / 3;
+            const iu = (d[((yy-1)*w + xx)*4] + d[((yy-1)*w + xx)*4 + 1] + d[((yy-1)*w + xx)*4 + 2]) / 3;
+            const id = (d[((yy+1)*w + xx)*4] + d[((yy+1)*w + xx)*4 + 1] + d[((yy+1)*w + xx)*4 + 2]) / 3;
+            const gx = Math.abs(ir - il);
+            const gy = Math.abs(id - iu);
+            const sat = Math.max(d[i], d[i+1], d[i+2]) - Math.min(d[i], d[i+1], d[i+2]);
+            const a = d[i+3] / 255;
+            const weight = (gx + gy) * 0.8 + sat * 0.35 + Math.abs(128 - l) * 0.08;
+            const finalW = weight * a;
+            if(finalW > 18){
+              if(xx < minX) minX = xx;
+              if(yy < minY) minY = yy;
+              if(xx > maxX) maxX = xx;
+              if(yy > maxY) maxY = yy;
+            }
+            sum += finalW;
+            mx += xx * finalW;
+            my += yy * finalW;
+          }
+        }
+        const info = {
+          cx: sum > 0 ? mx / sum / w : 0.5,
+          cy: sum > 0 ? my / sum / h : 0.5,
+          hasBounds: maxX > minX && maxY > minY,
+          bx: minX / w,
+          by: minY / h,
+          bw: Math.max(0.05, (maxX - minX + 1) / w),
+          bh: Math.max(0.05, (maxY - minY + 1) / h)
+        };
+        focusCache.set(cacheKey, info);
+        return info;
+      }catch(err){
+        const fallback = { cx:0.5, cy:0.5, hasBounds:false, bx:0.15, by:0.15, bw:0.7, bh:0.7 };
+        focusCache.set(cacheKey, fallback);
+        return fallback;
+      }
+    }
+
+    function getSmartAutoTransform(img, box, transform, prepared){
+      const manualX = Math.abs(transform?.x || 0) > 0.0001;
+      const manualY = Math.abs(transform?.y || 0) > 0.0001;
+      const manualZoom = Math.abs((transform?.zoom || 1) - 1) > 0.0001;
+      if(manualX || manualY || manualZoom) return transform || defaultTransform();
+      const focus = getImageFocusInfo(prepared.source || img);
+      const ratioBox = box.w / Math.max(1, box.h);
+      const ratioImg = prepared.iw / Math.max(1, prepared.ih);
+      let zoom = transform?.zoom || 1;
+      if(focus?.hasBounds){
+        const needW = box.w / Math.max(1, prepared.iw * focus.bw);
+        const needH = box.h / Math.max(1, prepared.ih * focus.bh);
+        const containScale = Math.min(box.w/prepared.iw, box.h/prepared.ih);
+        const coverScale = Math.max(box.w/prepared.iw, box.h/prepared.ih);
+        const contentScale = Math.max(needW, needH);
+        zoom = Math.max(1, Math.min(2.4, contentScale / Math.max(coverScale, containScale)));
+      }else if(Math.abs(ratioBox - ratioImg) > 0.28){
+        zoom = Math.min(1.2, 1 + Math.abs(ratioBox - ratioImg) * 0.18);
+      }
+      let x = transform?.x || 0;
+      let y = transform?.y || 0;
+      if(!manualX) x = (0.5 - (focus?.cx || 0.5)) * 1.7;
+      if(!manualY) y = (0.5 - (focus?.cy || 0.5)) * 1.7;
+      x = Math.max(-1, Math.min(1, x));
+      y = Math.max(-1, Math.min(1, y));
+      return { ...(transform || defaultTransform()), zoom, x, y };
+    }
+
+    function drawFitImage(ctx, img, box, transform, options = {}){
+      const prepared = getPreparedSource(img, box.portrait);
+      const requestedMode = options.mode || state.fitMode;
+      const forceContain = !!options.forceContain;
+      const mode = forceContain ? 'contain' : requestedMode;
+      const smartTransform = getSmartAutoTransform(img, box, transform, prepared);
+      const containScale = Math.min(box.w/prepared.iw, box.h/prepared.ih);
+      const coverScale = Math.max(box.w/prepared.iw, box.h/prepared.ih);
+      const scaleBase = mode === 'cover' ? coverScale : containScale;
+      const safeZoom = forceContain ? 1 : (smartTransform.zoom || 1);
+      const scale = scaleBase * safeZoom;
+      const dw = prepared.iw * scale;
+      const dh = prepared.ih * scale;
+      const allowPanX = !forceContain && dw > box.w + 0.5;
+      const allowPanY = !forceContain && dh > box.h + 0.5;
+      const moveX = allowPanX ? (smartTransform.x || 0) * Math.max(0, (dw - box.w)) * 0.5 : 0;
+      const moveY = allowPanY ? (smartTransform.y || 0) * Math.max(0, (dh - box.h)) * 0.5 : 0;
+      const dx = box.x + (box.w - dw)/2 + moveX;
+      const dy = box.y + (box.h - dh)/2 + moveY;
+      if(mode === 'contain_blur' && !forceContain){
+        const blurScale = Math.max(box.w/prepared.iw, box.h/prepared.ih);
+        const bdw = prepared.iw * blurScale;
+        const bdh = prepared.ih * blurScale;
+        const bdx = box.x + (box.w - bdw)/2;
+        const bdy = box.y + (box.h - bdh)/2;
+        ctx.save();
+        ctx.filter = 'blur(30px) saturate(1.04) brightness(.94)';
+        ctx.drawImage(prepared.source, bdx, bdy, bdw, bdh);
+        ctx.restore();
+      }
+      ctx.save();
+      ctx.translate(box.x + box.w/2, box.y + box.h/2);
+      ctx.rotate((smartTransform.rotate || 0) * Math.PI / 180);
+      ctx.drawImage(prepared.source, dx - (box.x + box.w/2), dy - (box.y + box.h/2), dw, dh);
+      ctx.restore();
+    }
+
+
+    function getFrameMaskBoxes(frameCanvas, wantedCount){
+      const targetCount = Number.isFinite(Number(wantedCount)) ? Number(wantedCount) : 0;
+      if(!state.smartFrame || !frameCanvas || state.selectedFrameId === 'none') return null;
+      try{
+        const srcW = frameCanvas.width, srcH = frameCanvas.height;
+        if(!srcW || !srcH) return null;
+
+        const maxSide = 460;
+        const scale = Math.min(1, maxSide / Math.max(srcW, srcH));
+        const w = Math.max(1, Math.round(srcW * scale));
+        const h = Math.max(1, Math.round(srcH * scale));
+
+        const temp = document.createElement('canvas');
+        temp.width = w;
+        temp.height = h;
+        const ctx = temp.getContext('2d', { willReadFrequently:true, alpha:true });
+        ctx.drawImage(frameCanvas, 0, 0, w, h);
+
+        const imgData = ctx.getImageData(0, 0, w, h);
+        const data = imgData.data;
+        const idx = (x,y) => y*w + x;
+        const clampNum = (v,a,b) => Math.max(a, Math.min(b, v));
+        const mix = (a,b,t) => a + (b-a) * t;
+
+        const corners = [
+          [0,0],[w-1,0],[0,h-1],[w-1,h-1],
+          [Math.floor(w*0.08),Math.floor(h*0.08)],
+          [Math.floor(w*0.92),Math.floor(h*0.08)],
+          [Math.floor(w*0.08),Math.floor(h*0.92)],
+          [Math.floor(w*0.92),Math.floor(h*0.92)]
+        ];
+        let bgR = 255, bgG = 255, bgB = 255, bgA = 255, samples = 0;
+        for(const [sx,sy] of corners){
+          const x = clampNum(sx, 0, w-1), y = clampNum(sy, 0, h-1);
+          const i = (y*w + x) * 4;
+          bgR += data[i]; bgG += data[i+1]; bgB += data[i+2]; bgA += data[i+3];
+          samples++;
+        }
+        bgR /= (samples + 1);
+        bgG /= (samples + 1);
+        bgB /= (samples + 1);
+        bgA /= (samples + 1);
+
+        let transparentPixels = 0;
+        for(let i=0;i<data.length;i+=4){
+          if(data[i+3] < 24) transparentPixels++;
+        }
+        const transparentRatio = transparentPixels / Math.max(1, w*h);
+        const preferAlphaHole = transparentRatio > 0.003;
+
+        const open = new Uint8Array(w*h);
+        for(let i=0, p=0; i<data.length; i+=4, p++){
+          const r = data[i], g = data[i+1], b = data[i+2], a = data[i+3];
+          const brightness = (r+g+b)/3;
+          const delta = Math.max(Math.abs(r-g), Math.abs(g-b), Math.abs(r-b));
+          const distBg = Math.abs(r-bgR) + Math.abs(g-bgG) + Math.abs(b-bgB);
+          const transparent = a < 42;
+          const semitransparent = a < 120;
+          const nearWhite = brightness > 247 && delta < 12;
+          const softWhite = brightness > 236 && delta < 10 && a < 232;
+          const nearBg = distBg < 24 && Math.abs(a - bgA) < 40;
+
+          if(preferAlphaHole){
+            if(transparent || semitransparent) open[p] = 1;
+          }else{
+            if(transparent || nearWhite || softWhite || nearBg) open[p] = 1;
+          }
+        }
+
+        function dilate(src){
+          const out = new Uint8Array(src.length);
+          for(let y=1;y<h-1;y++){
+            for(let x=1;x<w-1;x++){
+              let on = 0;
+              for(let yy=-1;yy<=1 && !on;yy++){
+                for(let xx=-1;xx<=1;xx++){
+                  if(src[idx(x+xx,y+yy)]){ on = 1; break; }
+                }
+              }
+              out[idx(x,y)] = on;
+            }
+          }
+          return out;
+        }
+        function erode(src){
+          const out = new Uint8Array(src.length);
+          for(let y=1;y<h-1;y++){
+            for(let x=1;x<w-1;x++){
+              let on = 1;
+              for(let yy=-1;yy<=1 && on;yy++){
+                for(let xx=-1;xx<=1;xx++){
+                  if(!src[idx(x+xx,y+yy)]){ on = 0; break; }
+                }
+              }
+              out[idx(x,y)] = on;
+            }
+          }
+          return out;
+        }
+
+        let refined = open;
+        if(!preferAlphaHole){
+          refined = dilate(refined);
+          refined = erode(refined);
+        }
+
+        const outside = new Uint8Array(w*h);
+        const qx = new Int32Array(w*h);
+        const qy = new Int32Array(w*h);
+        let head = 0, tail = 0;
+        function pushOutside(x,y){
+          const id = idx(x,y);
+          if(refined[id] !== 1 || outside[id]) return;
+          outside[id] = 1;
+          qx[tail] = x; qy[tail] = y; tail++;
+        }
+        for(let x=0;x<w;x++){ pushOutside(x,0); pushOutside(x,h-1); }
+        for(let y=0;y<h;y++){ pushOutside(0,y); pushOutside(w-1,y); }
+        while(head < tail){
+          const x = qx[head], y = qy[head]; head++;
+          if(x>0) pushOutside(x-1,y);
+          if(x<w-1) pushOutside(x+1,y);
+          if(y>0) pushOutside(x,y-1);
+          if(y<h-1) pushOutside(x,y+1);
+        }
+
+        const visited = new Uint8Array(w*h);
+        const comps = [];
+        const minArea = Math.max(36, Math.round(w*h*0.0018));
+        const maxEdgeMargin = Math.round(Math.min(w,h)*0.02);
+
+        for(let y=1;y<h-1;y++){
+          for(let x=1;x<w-1;x++){
+            const startId = idx(x,y);
+            if(refined[startId] !== 1 || outside[startId] || visited[startId]) continue;
+            let area = 0, minX = x, minY = y, maxX = x, maxY = y;
+            const points = [];
+            head = 0; tail = 0;
+            qx[tail] = x; qy[tail] = y; tail++; visited[startId] = 1;
+            while(head < tail){
+              const cx = qx[head], cy = qy[head]; head++;
+              area++;
+              points.push([cx,cy]);
+              if(cx < minX) minX = cx;
+              if(cy < minY) minY = cy;
+              if(cx > maxX) maxX = cx;
+              if(cy > maxY) maxY = cy;
+
+              if(cx>0){
+                const ni = idx(cx-1,cy);
+                if(refined[ni] === 1 && !outside[ni] && !visited[ni]){ visited[ni]=1; qx[tail]=cx-1; qy[tail]=cy; tail++; }
+              }
+              if(cx<w-1){
+                const ni = idx(cx+1,cy);
+                if(refined[ni] === 1 && !outside[ni] && !visited[ni]){ visited[ni]=1; qx[tail]=cx+1; qy[tail]=cy; tail++; }
+              }
+              if(cy>0){
+                const ni = idx(cx,cy-1);
+                if(refined[ni] === 1 && !outside[ni] && !visited[ni]){ visited[ni]=1; qx[tail]=cx; qy[tail]=cy-1; tail++; }
+              }
+              if(cy<h-1){
+                const ni = idx(cx,cy+1);
+                if(refined[ni] === 1 && !outside[ni] && !visited[ni]){ visited[ni]=1; qx[tail]=cx; qy[tail]=cy+1; tail++; }
+              }
+            }
+
+            const bw = maxX - minX + 1;
+            const bh = maxY - minY + 1;
+            const fill = area / Math.max(1, bw * bh);
+            const awayFromEdges = minX > maxEdgeMargin && minY > maxEdgeMargin && maxX < w-1-maxEdgeMargin && maxY < h-1-maxEdgeMargin;
+            const ratio = bw / Math.max(1, bh);
+            if(!(area >= minArea && fill > 0.08 && awayFromEdges && ratio > 0.18 && ratio < 6)) continue;
+
+            const rowCount = new Int32Array(bh);
+            const colCount = new Int32Array(bw);
+            for(const [px,py] of points){
+              rowCount[py-minY]++;
+              colCount[px-minX]++;
+            }
+            const rowCut = Math.max(1, Math.round(bw * 0.12));
+            const colCut = Math.max(1, Math.round(bh * 0.12));
+            let trimMinX = minX, trimMaxX = maxX, trimMinY = minY, trimMaxY = maxY;
+            while(trimMinY < trimMaxY && rowCount[trimMinY-minY] < rowCut) trimMinY++;
+            while(trimMaxY > trimMinY && rowCount[trimMaxY-minY] < rowCut) trimMaxY--;
+            while(trimMinX < trimMaxX && colCount[trimMinX-minX] < colCut) trimMinX++;
+            while(trimMaxX > trimMinX && colCount[trimMaxX-minX] < colCut) trimMaxX--;
+
+            const trimW = Math.max(2, trimMaxX - trimMinX + 1);
+            const trimH = Math.max(2, trimMaxY - trimMinY + 1);
+            const outsetX = Math.max(0, Math.round(trimW * 0.01));
+            const outsetY = Math.max(0, Math.round(trimH * 0.01));
+            trimMinX = Math.max(0, trimMinX - outsetX);
+            trimMaxX = Math.min(w - 1, trimMaxX + outsetX);
+            trimMinY = Math.max(0, trimMinY - outsetY);
+            trimMaxY = Math.min(h - 1, trimMaxY + outsetY);
+
+            comps.push({
+              x:trimMinX / w,
+              y:trimMinY / h,
+              w:Math.max(2, trimMaxX - trimMinX + 1) / w,
+              h:Math.max(2, trimMaxY - trimMinY + 1) / h,
+              area,
+              cx:(trimMinX + trimMaxX) / 2 / w,
+              cy:(trimMinY + trimMaxY) / 2 / h
+            });
+          }
+        }
+
+        if(!comps.length) return null;
+
+        const layoutInfo = getLayoutBoxes(1000, 1000);
+        const baseBoxes = layoutInfo.boxes.map(b => ({
+          x:b.x / 1000, y:b.y / 1000, w:b.w / 1000, h:b.h / 1000
+        }));
+
+        comps.sort((a,b) => b.area - a.area);
+        const filtered = comps.slice(0, Math.max(targetCount * 3, 12)).sort((a,b) => (a.cy - b.cy) || (a.cx - b.cx));
+
+        if(targetCount < 1) return filtered;
+
+        const finalBoxes = baseBoxes.slice(0, targetCount).map(b => ({...b}));
+        const used = new Set();
+
+        for(let bi=0; bi<finalBoxes.length; bi++){
+          const base = finalBoxes[bi];
+          let best = -1, bestScore = Infinity;
+          const bcx = base.x + base.w/2;
+          const bcy = base.y + base.h/2;
+
+          for(let i=0;i<filtered.length;i++){
+            if(used.has(i)) continue;
+            const s = filtered[i];
+            const scx = s.x + s.w/2;
+            const scy = s.y + s.h/2;
+            const dist = Math.hypot((scx - bcx) * 1000, (scy - bcy) * 1000);
+            const areaPenalty = Math.abs((s.w*s.h) - (base.w*base.h)) / Math.max(base.w*base.h, 0.0001);
+            const ratioPenalty = Math.abs((s.w/Math.max(s.h,0.0001)) - (base.w/Math.max(base.h,0.0001)));
+            const score = dist + areaPenalty * 170 + ratioPenalty * 90;
+            if(score < bestScore){ bestScore = score; best = i; }
+          }
+
+          if(best >= 0){
+            used.add(best);
+            const s = filtered[best];
+            const trust = bestScore < 220 ? 0.88 : (bestScore < 340 ? 0.65 : 0.0);
+            if(trust > 0){
+              const nx = mix(base.x, s.x, trust);
+              const ny = mix(base.y, s.y, trust);
+              const nw = mix(base.w, s.w, Math.min(0.82, trust));
+              const nh = mix(base.h, s.h, Math.min(0.82, trust));
+              finalBoxes[bi] = {
+                x: Math.max(0, Math.min(1, nx)),
+                y: Math.max(0, Math.min(1, ny)),
+                w: Math.max(0.02, Math.min(1, nw)),
+                h: Math.max(0.02, Math.min(1, nh))
+              };
+            }
+          }
+        }
+
+        return finalBoxes.map(b => {
+          const x = Math.max(0, Math.min(0.98, b.x));
+          const y = Math.max(0, Math.min(0.98, b.y));
+          const w2 = Math.max(0.02, Math.min(0.98 - x, b.w));
+          const h2 = Math.max(0.02, Math.min(0.98 - y, b.h));
+          return { x, y, w:w2, h:h2 };
+        });
+      }catch(err){
+        console.error('getFrameMaskBoxes failed', err);
+        return null;
+      }
+    }
+
+
+    async function generateComposite(){
+      try{
+        const chosen = state.selectedShotIds.map(id => state.shots.find(s => s.id === id)).filter(Boolean);
+        if(chosen.length !== requiredCount()){
+          $('previewEmpty').classList.remove('hidden');
+          $('previewStack')?$('previewStack').classList.add('hidden'):null; $('finalPreview').classList.add('hidden');
+          $('previewEmpty').innerHTML = `Bạn cần chọn đủ ${requiredCount()} ảnh để tạo ảnh.`;
+          return false;
+        }
+        ensureSlotTransforms();
+        const images = await Promise.all(chosen.map(s => loadImage(s.src)));
+        const frame = frameConfig();
+        const stickerItems = [];
+        for(const id of state.selectedStickerIds){
+          const st = state.stickers.find(x => x.id === id);
+          if(!st) continue;
+          if(st.type === 'emoji') stickerItems.push(st);
+          else {
+            try{
+              const img = await loadImage(st.src);
+              stickerItems.push({ ...st, img });
+            }catch(err){ console.error(err); }
+          }
+        }
+        const size = getExportSize();
+        exportCanvas.width = size.w;
+        exportCanvas.height = size.h;
+        exportCtx.clearRect(0,0,size.w,size.h);
+        exportCtx.fillStyle = '#ffffff';
+        exportCtx.fillRect(0,0,size.w,size.h);
+
+        const layoutInfo = getLayoutBoxes(size.w, size.h);
+        let boxes = layoutInfo.boxes.map(b => ({ ...b }));
+        let frameCanvas = null;
+        let frameMaskBoxes = null;
+
+        if(frame.src){
+          try{
+            const frameImg = await loadImage(frame.src).catch(() => null);
+            if(frameImg){
+              frameCanvas = document.createElement('canvas');
+              frameCanvas.width = size.w;
+              frameCanvas.height = size.h;
+              const fctx = frameCanvas.getContext('2d', { alpha:true, willReadFrequently:true });
+              if(fctx){
+                fctx.drawImage(frameImg,0,0,size.w,size.h);
+                try{ removeWhiteFromFrame(frameCanvas); }catch(err){ console.warn('removeWhiteFromFrame failed', err); }
+                try{
+                  frameMaskBoxes = getFrameMaskBoxes(frameCanvas, requiredCount());
+                  if(frameMaskBoxes && frameMaskBoxes.length === boxes.length){
+                    boxes = frameMaskBoxes.map((b, idx) => ({
+                      x: Math.round(b.x * size.w),
+                      y: Math.round(b.y * size.h),
+                      w: Math.round(b.w * size.w),
+                      h: Math.round(b.h * size.h),
+                      portrait: boxes[idx] ? boxes[idx].portrait : true
+                    }));
+                  }
+                }catch(err){
+                  console.warn('frame hole detection failed, fallback to layout boxes', err);
+                  frameMaskBoxes = null;
+                }
+              }
+            }
+          }catch(err){
+            console.warn('frame load failed, fallback to layout boxes', err);
+            frameCanvas = null;
+          }
+        }
+
+        const builtColors = frame.colors || null;
+        if(builtColors?.bg){
+          exportCtx.fillStyle = builtColors.bg;
+          exportCtx.fillRect(0,0,size.w,size.h);
+        }
+
+        if(frameCanvas && !state.frameOverlay){
+          exportCtx.drawImage(frameCanvas,0,0,size.w,size.h);
+        }
+
+        const usingTransparentHoles = !!(frameMaskBoxes && frameMaskBoxes.length === boxes.length);
+        const photoLayer = document.createElement('canvas');
+        photoLayer.width = size.w;
+        photoLayer.height = size.h;
+        const photoCtx = photoLayer.getContext('2d', { alpha:true, willReadFrequently:true });
+
+        boxes.forEach((box, i) => {
+          const useSquareClip = usingTransparentHoles;
+          const radius = useSquareClip ? 0 : Math.max(18, Math.round(Math.min(box.w, box.h) * 0.08));
+          photoCtx.save();
+          photoCtx.beginPath();
+          if(useSquareClip) photoCtx.rect(box.x, box.y, box.w, box.h);
+          else roundRectPath(photoCtx, box.x, box.y, box.w, box.h, radius);
+          photoCtx.clip();
+          if(!usingTransparentHoles){
+            photoCtx.fillStyle = state.slotBgColor;
+            photoCtx.fillRect(box.x, box.y, box.w, box.h);
+          }
+          drawFitImage(photoCtx, images[i], box, state.slotTransforms[i] || defaultTransform(), {
+            forceContain: usingTransparentHoles,
+            mode: usingTransparentHoles ? 'contain' : state.fitMode
+          });
+          photoCtx.restore();
+          if(!usingTransparentHoles){
+            photoCtx.save();
+            photoCtx.beginPath();
+            roundRectPath(photoCtx, box.x, box.y, box.w, box.h, radius);
+            photoCtx.lineWidth = Math.max(4, Math.round(Math.min(box.w, box.h)*0.02));
+            photoCtx.strokeStyle = builtColors?.border || 'rgba(255,255,255,.9)';
+            photoCtx.stroke();
+            photoCtx.restore();
+          }
+        });
+
+        if(usingTransparentHoles && frameCanvas){
+          const holeMaskCanvas = document.createElement('canvas');
+          holeMaskCanvas.width = size.w;
+          holeMaskCanvas.height = size.h;
+          const maskCtx = holeMaskCanvas.getContext('2d', { alpha:true, willReadFrequently:true });
+          maskCtx.drawImage(frameCanvas, 0, 0, size.w, size.h);
+          try{
+            const imgData = maskCtx.getImageData(0, 0, size.w, size.h);
+            const data = imgData.data;
+            for(let p=0; p<data.length; p+=4){
+              const a = data[p+3];
+              if(a < 40){
+                data[p] = 255; data[p+1] = 255; data[p+2] = 255; data[p+3] = 255;
+              }else{
+                data[p] = 0; data[p+1] = 0; data[p+2] = 0; data[p+3] = 0;
+              }
+            }
+            maskCtx.putImageData(imgData, 0, 0);
+            photoCtx.save();
+            photoCtx.globalCompositeOperation = 'destination-in';
+            photoCtx.drawImage(holeMaskCanvas, 0, 0, size.w, size.h);
+            photoCtx.restore();
+          }catch(err){
+            console.warn('hole mask apply failed', err);
+          }
+          exportCtx.fillStyle = state.slotBgColor;
+          exportCtx.fillRect(0,0,size.w,size.h);
+        }
+
+        exportCtx.drawImage(photoLayer, 0, 0, size.w, size.h);
+
+        if(frameCanvas && state.frameOverlay){
+          exportCtx.save();
+          exportCtx.setTransform(1,0,0,1,0,0);
+          exportCtx.drawImage(frameCanvas,0,0,size.w,size.h);
+          exportCtx.restore();
+        }
+
+        if(state.stickersEnabled){
+          ensureStickerTransforms();
+          stickerItems.forEach((item, idx) => {
+            const tf = state.stickerTransforms[idx] || defaultStickerTransform(idx);
+            const x = size.w * tf.x;
+            const y = size.h * tf.y;
+            const s = Math.round(Math.min(size.w,size.h) * tf.scale);
+            exportCtx.save();
+            exportCtx.translate(x, y);
+            exportCtx.rotate((tf.rotate || 0) * Math.PI / 180);
+            if(item.type === 'emoji'){
+              exportCtx.font = `${Math.round(Math.min(size.w,size.h) * Math.max(0.045, tf.scale * 0.55))}px Arial`;
+              exportCtx.textAlign = 'center';
+              exportCtx.textBaseline = 'middle';
+              exportCtx.fillText(item.value, 0, 0);
+            } else if(item.img){
+              exportCtx.drawImage(item.img, -s/2, -s/2, s, s);
+            }
+            exportCtx.restore();
+          });
+        }
+
+        state.lastGenerated = exportCanvas.toDataURL('image/png', 0.96);
+        $('finalPreview').src = state.lastGenerated;
+        $('previewStack').classList.remove('hidden');
+        $('previewEmpty').classList.add('hidden');
+        try{ renderStickerOverlay(); }catch(err){ console.warn('renderStickerOverlay failed', err); }
+        try{ renderTextOverlay(); }catch(err){ console.warn('renderTextOverlay failed', err); }
+        saveSession();
+        return true;
+      }catch(err){
+        console.error(err);
+        alert('Lỗi tạo ảnh: ' + (err && err.message ? err.message : 'không xác định'));
+        return false;
+      }
+    }
+
+    let generateTimer = null;
+    let recapTimer = null;
+    function queueGenerate(){
+      clearTimeout(generateTimer);
+      generateTimer = setTimeout(() => { if(state.selectedShotIds.length === requiredCount()) generateComposite(); }, 120);
+    }
+    function queueRecapBuild(){
+      clearTimeout(recapTimer);
+      recapTimer = setTimeout(() => {
+        if(state.shots.length || state.selectedShotIds.length) buildRecapVideo();
+      }, 500);
+    }
+
+    function downloadFinal(){
+      if(!state.lastGenerated){ alert('Hãy tạo ảnh trước.'); return; }
+      const a = document.createElement('a');
+      a.href = state.lastGenerated;
+      a.download = 'photobooth-pro-max-v8-1.png';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    function saveSession(){
+      try{
+        localStorage.setItem('photobooth_pro_max_v65', JSON.stringify({
+          layout:state.layout,
+          fitMode:state.fitMode,
+          selectedFrameId:state.selectedFrameId,
+          frameCategoryFilter:state.frameCategoryFilter,
+          selectedStickerIds:state.selectedStickerIds,
+          stickerTransforms:state.stickerTransforms,
+          footerText:state.footerText,
+          footerColor:state.footerColor,
+          footerFont:state.footerFont,
+          footerSize:state.footerSize,
+          footerBottom:state.footerBottom,
+          footerX:state.footerX,
+          footerY:state.footerY,
+          importedFontName:state.importedFontName,
+          importedFontSrc:state.importedFontSrc,
+          slotTransforms:state.slotTransforms,
+          shots:state.shots,
+          selectedShotIds:state.selectedShotIds,
+          slotBgColor:state.slotBgColor,
+          autoRotate:state.autoRotate,
+          frameOverlay:state.frameOverlay,
+          smartFrame:state.smartFrame,
+          autoHoleMode:state.autoHoleMode,
+          removeWhite:state.removeWhite,
+          quality:state.quality,
+          cameraFx:state.cameraFx
+        }));
+      }catch(err){ console.error(err); }
+    }
+
+    function restoreSession(){
+      try{
+        const raw = localStorage.getItem('photobooth_pro_max_v65');
+        if(!raw) return;
+        const data = JSON.parse(raw);
+        Object.assign(state, {
+          layout:data.layout || state.layout,
+          fitMode:data.fitMode || state.fitMode,
+          selectedFrameId:data.selectedFrameId || state.selectedFrameId,
+          frameCategoryFilter:data.frameCategoryFilter || state.frameCategoryFilter,
+          selectedStickerIds:Array.isArray(data.selectedStickerIds) ? data.selectedStickerIds : [],
+          stickerTransforms:Array.isArray(data.stickerTransforms) ? data.stickerTransforms : [],
+          footerText:data.footerText || state.footerText,
+          footerColor:data.footerColor || state.footerColor,
+          footerFont:data.footerFont || state.footerFont,
+          footerSize:Number(data.footerSize || state.footerSize),
+          footerBottom:Number(data.footerBottom || state.footerBottom),
+          footerX:Number(data.footerX ?? state.footerX),
+          footerY:Number(data.footerY ?? state.footerY),
+          importedFontName:data.importedFontName || '',
+          importedFontSrc:data.importedFontSrc || '',
+          slotTransforms:Array.isArray(data.slotTransforms) ? data.slotTransforms : [],
+          shots:Array.isArray(data.shots) ? data.shots : [],
+          selectedShotIds:Array.isArray(data.selectedShotIds) ? data.selectedShotIds : [],
+          slotBgColor:data.slotBgColor || state.slotBgColor,
+          autoRotate: data.autoRotate !== false,
+          frameOverlay: data.frameOverlay !== false,
+          smartFrame: data.smartFrame !== false,
+          autoHoleMode: data.autoHoleMode !== false,
+          removeWhite: data.removeWhite !== false,
+          quality:data.quality || state.quality,
+          cameraFx:data.cameraFx ? { ...state.cameraFx, ...data.cameraFx } : state.cameraFx
+        });
+      }catch(err){ console.error(err); }
+    }
+
+    function setActiveTab(tab){
+      state.activeTab = tab;
+      document.querySelectorAll('.tab').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tab));
+      document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.toggle('hidden', panel.id !== 'tab-' + tab));
+      const meta = {
+        layout:['Layout ảnh','Chọn kiểu ghép ảnh giống photobooth ngoài tiệm.'],
+        photos:['Chọn ảnh ưng ý','Chạm để chọn ảnh theo đúng thứ tự xuất hiện.'],
+        frame:['Khung ảnh','Thêm khung PNG và tự căn theo lỗ khung khi có thể.'],
+        sticker:['Sticker','Thêm icon hoặc sticker ảnh.'],
+        text:['Chữ','Nhập font từ máy, đổi màu và kéo chữ trực tiếp trên preview.'],
+        video:['Video recap','Xem lại video recap ở tab cuối cùng.']
+      };
+      $('toolTitle').textContent = meta[tab][0];
+      $('toolDesc').textContent = meta[tab][1];
+    }
+
+    function bindEvents(){
+      document.querySelectorAll('.tab').forEach(btn => btn.onclick = () => setActiveTab(btn.dataset.tab));
+      $('uploadPhotoBtn').onclick = () => $('photoInput').click();
+      $('photoInput').addEventListener('change', async e => { await addPhotos([...(e.target.files || [])]); e.target.value=''; saveSession(); });
+      $('uploadFrameBtn').onclick = () => $('frameInput').click();
+      $('frameInput').addEventListener('change', async e => { await addFrames([...(e.target.files || [])]); e.target.value=''; renderFrames(); saveSession(); });
+      $('uploadStickerBtn').onclick = () => $('stickerInput').click();
+      $('stickerInput').addEventListener('change', async e => { await addStickers([...(e.target.files || [])]); e.target.value=''; renderStickers(); saveSession(); });
+      $('startCameraBtn').onclick = () => startCamera();
+      $('captureBtn').onclick = captureOne;
+      $('retakeLastBtn').onclick = retakeLast;
+      $('switchCameraBtn').onclick = async () => {
+        if(!state.devices.length) await listVideoDevices();
+        if(!state.devices.length){ alert('Không tìm thấy camera khác.'); return; }
+        state.deviceIndex = (state.deviceIndex + 1) % state.devices.length;
+        await startCamera(state.devices[state.deviceIndex].deviceId);
+      };
+      $('mirrorBtn').onclick = () => { state.mirror = !state.mirror; $('mirrorBtn').textContent = 'Lật gương: ' + (state.mirror ? 'Bật' : 'Tắt'); };
+      $('generateBtn').onclick = generateComposite;
+      $('generateBtnTop').onclick = generateComposite;
+      $('downloadBtn').onclick = downloadFinal;
+      $('downloadBtnBottom').onclick = downloadFinal;
+      $('autoSelectBtn').onclick = autoSelectLatest;
+      $('clearSelectedBtn').onclick = () => { state.selectedShotIds = []; renderGallery(); setStatus(); queueGenerate(); saveSession(); };
+      $('clearAllBtn').onclick = () => { state.shots = []; state.selectedShotIds = []; renderGallery(); setStatus(); $('previewEmpty').classList.remove('hidden'); $('previewStack')?$('previewStack').classList.add('hidden'):null; $('finalPreview').classList.add('hidden'); if($('textDragLayer')) $('textDragLayer').innerHTML=''; if(state.recapUrl){ URL.revokeObjectURL(state.recapUrl); state.recapUrl=''; } if($('recapVideo')) $('recapVideo').removeAttribute('src'); if($('recapVideoReview')) $('recapVideoReview').removeAttribute('src'); if($('recapStatus')) $('recapStatus').textContent='Chưa có video recap. Video sẽ tự đổi ngang hoặc dọc theo layout đang chọn.'; updateRecapViews(); saveSession(); };
+      $('frameNoneBtn').onclick = () => { state.selectedFrameId = 'none'; renderFrames(); queueGenerate(); saveSession(); };
+      $('frameCategorySelect').addEventListener('change', e => { state.frameCategoryFilter = e.target.value; renderFrames(); saveSession(); });
+      $('frameOverlayBtn').onclick = () => { state.frameOverlay = !state.frameOverlay; $('frameOverlayBtn').textContent = 'Khung phủ trên: ' + (state.frameOverlay ? 'Bật' : 'Tắt'); queueGenerate(); saveSession(); };
+      $('smartFrameBtn').onclick = () => { state.smartFrame = !state.smartFrame; $('smartFrameBtn').textContent = 'Căn theo khung: ' + (state.smartFrame ? 'Bật' : 'Tắt'); queueGenerate(); saveSession(); };
+      $('autoHoleBtn').onclick = async () => { state.autoHoleMode = !state.autoHoleMode; $('autoHoleBtn').textContent = 'Ô trống khung: ' + (state.autoHoleMode ? 'Bật' : 'Tắt'); await refreshAutoHoleInfo(); };
+      $('removeWhiteBtn').onclick = async () => { state.removeWhite = !state.removeWhite; $('removeWhiteBtn').textContent = state.removeWhite ? 'Bật' : 'Tắt'; state.frameSlotCache = {}; await refreshAutoHoleInfo(); };
+      $('toggleStickerBtn').onclick = () => { state.stickersEnabled = !state.stickersEnabled; $('toggleStickerBtn').textContent = 'Sticker: ' + (state.stickersEnabled ? 'Bật' : 'Tắt'); queueGenerate(); saveSession(); };
+      $('clearStickerBtn').onclick = () => { state.selectedStickerIds = []; state.stickerTransforms = []; state.activeStickerIndex = 0; renderStickers(); renderStickerLayers(); renderStickerOverlay(); queueGenerate(); saveSession(); };
+      $('stickerXRange').addEventListener('input', e => { updateCurrentSticker('x', Number(e.target.value)); saveSession(); });
+      $('stickerYRange').addEventListener('input', e => { updateCurrentSticker('y', Number(e.target.value)); saveSession(); });
+      $('stickerScaleRange').addEventListener('input', e => { updateCurrentSticker('scale', Number(e.target.value)); saveSession(); });
+      $('stickerRotateRange').addEventListener('input', e => { updateCurrentSticker('rotate', Number(e.target.value)); saveSession(); });
+      document.querySelectorAll('[data-sticker-preset]').forEach(btn => btn.onclick = () => applyStickerPreset(btn.dataset.stickerPreset));
+      $('resetStickerBtn').onclick = () => { if(state.selectedStickerIds.length){ state.stickerTransforms[state.activeStickerIndex] = defaultStickerTransform(state.activeStickerIndex); syncStickerControls(); renderStickerOverlay(); queueGenerate(); saveSession(); } };
+      $('bringStickerFrontBtn').onclick = () => { if(state.selectedStickerIds.length > 1){ const id = state.selectedStickerIds.splice(state.activeStickerIndex,1)[0]; const tf = state.stickerTransforms.splice(state.activeStickerIndex,1)[0]; state.selectedStickerIds.push(id); state.stickerTransforms.push(tf); state.activeStickerIndex = state.selectedStickerIds.length - 1; renderStickers(); renderStickerLayers(); syncStickerControls(); renderStickerOverlay(); queueGenerate(); saveSession(); } };
+      [['fxTimestampBtn','timestamp'],['fxLightLeakBtn','lightLeak'],['fxVignetteBtn','vignette'],['fxGrainBtn','grain'],['fxChromaticBtn','chromatic']].forEach(([id,key]) => { $(id).onclick = () => { state.cameraFx[key] = !state.cameraFx[key]; syncFxControls(); saveSession(); }; });
+      $('fxLightLeakRange').addEventListener('input', e => { state.cameraFx.lightLeakStrength = Number(e.target.value); syncFxControls(); saveSession(); });
+      $('fxVignetteRange').addEventListener('input', e => { state.cameraFx.vignetteStrength = Number(e.target.value); syncFxControls(); saveSession(); });
+      $('fxGrainRange').addEventListener('input', e => { state.cameraFx.grainStrength = Number(e.target.value); syncFxControls(); saveSession(); });
+      $('fxChromaticRange').addEventListener('input', e => { state.cameraFx.chromaticStrength = Number(e.target.value); syncFxControls(); saveSession(); });
+      $('fxResetBtn').onclick = resetCameraFx;
+      $('applyOrderBtn').onclick = generateComposite;
+      $('timerSelect').addEventListener('change', e => { state.timer = Number(e.target.value); saveSession(); });
+      $('qualitySelect').addEventListener('change', e => { state.quality = e.target.value; queueGenerate(); saveSession(); });
+      document.querySelectorAll('[data-fit]').forEach(btn => btn.onclick = () => {
+        state.fitMode = btn.dataset.fit;
+        document.querySelectorAll('[data-fit]').forEach(x => x.classList.toggle('active', x.dataset.fit === state.fitMode));
+        queueGenerate(); saveSession();
+      });
+      $('slotBgColor').addEventListener('input', e => { state.slotBgColor = e.target.value; queueGenerate(); saveSession(); });
+      $('autoRotateBtn').onclick = () => { state.autoRotate = !state.autoRotate; $('autoRotateBtn').textContent = state.autoRotate ? 'Bật' : 'Tắt'; queueGenerate(); saveSession(); };
+      $('footerText').addEventListener('input', e => { state.footerText = e.target.value; renderTextOverlay(); queueGenerate(); saveSession(); });
+      $('footerColor').addEventListener('input', e => { state.footerColor = e.target.value; renderTextOverlay(); queueGenerate(); saveSession(); });
+      $('footerFont').addEventListener('change', e => { state.footerFont = e.target.value; renderTextOverlay(); queueGenerate(); saveSession(); });
+      $('uploadFontBtn').onclick = () => $('fontFileInput').click();
+      $('fontFileInput').addEventListener('change', async e => {
+        const file = (e.target.files || [])[0];
+        if(file){
+          const src = await readFileAsDataURL(file);
+          await loadImportedFontFromDataURL(file.name, src);
+          renderTextOverlay();
+          queueGenerate();
+          saveSession();
+        }
+        e.target.value = '';
+      });
+      $('fontSizeRange').addEventListener('input', e => { state.footerSize = Number(e.target.value); syncSlotControls(); renderTextOverlay(); queueGenerate(); saveSession(); });
+      $('footerXRange').addEventListener('input', e => setTextPosition(Number(e.target.value), state.footerY));
+      $('footerYRange').addEventListener('input', e => setTextPosition(state.footerX, Number(e.target.value)));
+      $('centerTextBtn').onclick = () => { state.footerX = 0.5; state.footerY = 0.94; syncSlotControls(); renderTextOverlay(); queueGenerate(); saveSession(); };
+      $('resetTextBtn').onclick = () => { state.footerText = 'MY PHOTO STRIP'; $('footerText').value = state.footerText; state.footerColor = '#333333'; $('footerColor').value = state.footerColor; state.footerSize = 34; state.footerX = 0.5; state.footerY = 0.94; syncSlotControls(); renderTextOverlay(); queueGenerate(); saveSession(); };
+      $('buildRecapBtn').onclick = buildRecapVideo;
+      $('downloadRecapBtn').onclick = downloadRecap;
+      if($('downloadRecapBtnReview')) $('downloadRecapBtnReview').onclick = downloadRecap;
+      if($('slotZoomRange')) $('slotZoomRange').addEventListener('input', e => updateCurrentSlot('zoom', Number(e.target.value)));
+      if($('slotOffsetXRange')) $('slotOffsetXRange').addEventListener('input', e => updateCurrentSlot('x', Number(e.target.value)));
+      if($('slotOffsetYRange')) $('slotOffsetYRange').addEventListener('input', e => updateCurrentSlot('y', Number(e.target.value)));
+      if($('slotRotateRange')) $('slotRotateRange').addEventListener('input', e => updateCurrentSlot('rotate', Number(e.target.value)));
+      if($('resetSlotBtn')) $('resetSlotBtn').onclick = () => { state.slotTransforms[state.activeSlotIndex] = defaultTransform(); syncSlotControls(); queueGenerate(); saveSession(); };
+      if($('resetAllSlotsBtn')) $('resetAllSlotsBtn').onclick = () => { ensureSlotTransforms(); state.slotTransforms = state.slotTransforms.map(() => defaultTransform()); syncSlotControls(); queueGenerate(); saveSession(); };
+      window.addEventListener('beforeunload', () => { stopCamera(); saveSession(); });
+      window.addEventListener('pagehide', stopCamera);
+      document.addEventListener('visibilitychange', () => { if(document.hidden) stopCamera(); });
+    }
+
+    async function init(){
+      restoreSession();
+      await loadPersistentAssets();
+      ensureSlotTransforms();
+      $('timerSelect').value = String(state.timer);
+      $('qualitySelect').value = state.quality;
+      $('slotBgColor').value = state.slotBgColor;
+      $('footerText').value = state.footerText;
+      $('footerColor').value = state.footerColor;
+      if([...( $('footerFont').options || [])].some(o => o.value === state.footerFont)) $('footerFont').value = state.footerFont;
+      if(state.importedFontSrc && state.importedFontName) await loadImportedFontFromDataURL(state.importedFontName, state.importedFontSrc);
+      $('frameOverlayBtn').textContent = 'Khung phủ trên: ' + (state.frameOverlay ? 'Bật' : 'Tắt');
+      $('smartFrameBtn').textContent = 'Căn theo khung: ' + (state.smartFrame ? 'Bật' : 'Tắt');
+      $('autoHoleBtn').textContent = 'Ô trống khung: ' + (state.autoHoleMode ? 'Bật' : 'Tắt');
+      $('removeWhiteBtn').textContent = state.removeWhite ? 'Bật' : 'Tắt';
+      $('toggleStickerBtn').textContent = 'Sticker: ' + (state.stickersEnabled ? 'Bật' : 'Tắt');
+      $('autoRotateBtn').textContent = state.autoRotate ? 'Bật' : 'Tắt';
+      document.querySelectorAll('[data-fit]').forEach(x => x.classList.toggle('active', x.dataset.fit === state.fitMode));
+      renderLayouts();
+      renderFrameCategoryOptions();
+      renderFrames();
+      renderStickers();
+      renderStickerLayers();
+      renderGallery();
+      renderSlotButtons();
+      syncSlotControls();
+      syncStickerControls();
+      syncFxControls();
+      setActiveTab(state.activeTab);
+      setStatus();
+      bindEvents();
+      if($('frameCategorySelect')) $('frameCategorySelect').value = state.frameCategoryFilter;
+      await refreshAutoHoleInfo();
+      if(state.selectedShotIds.length === requiredCount()) generateComposite();
+      if(state.shots.length || state.selectedShotIds.length) queueRecapBuild();
+    }
+
+    init();
+  </script>
+</body>
+</html>
