@@ -49,6 +49,9 @@
     .chip{padding:8px 12px;border-radius:999px;background:#fff;border:1px solid var(--line);font-size:13px;color:var(--muted);font-weight:700}
     .stage{position:relative;min-height:360px;border-radius:24px;overflow:hidden;background:radial-gradient(circle at top,#fef3f8,#f8fafc 55%,#eef2ff);display:grid;place-items:center}
     .stage-inner{position:relative;width:100%;height:100%;display:grid;place-items:center;padding:12px}
+    .stage[data-preview-aspect="auto"] .stage-inner{width:100%;height:100%;aspect-ratio:auto}
+    .stage[data-preview-aspect="4:3"] .stage-inner{width:min(100%,900px);height:auto;max-height:100%;aspect-ratio:4/3}
+    .stage[data-preview-aspect="16:9"] .stage-inner{width:min(100%,1000px);height:auto;max-height:100%;aspect-ratio:16/9}
     #cameraStage > video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#111}
     .overlay-count{position:absolute;inset:0;display:grid;place-items:center;font-size:min(22vw,140px);font-weight:900;color:#fff;background:rgba(0,0,0,.22);z-index:5}
     .preview-img{max-width:100%;max-height:72vh;object-fit:contain;display:block;border-radius:18px;box-shadow:0 20px 50px rgba(0,0,0,.12);background:#fff}
@@ -181,10 +184,11 @@
               <button id="retakeLastBtn" class="btn soft small" type="button">Chụp lại ảnh cuối</button>
               <button id="switchCameraBtn" class="btn soft small" type="button">Đổi camera</button>
               <button id="mirrorBtn" class="btn soft small" type="button">Lật gương: Bật</button>
+              <button id="quickAspectBtn" class="btn soft small" type="button">Tỉ lệ xem: Tự động</button>
               <button id="downloadBtn" class="btn primary small" type="button">Tải PNG</button>
             </div>
           </div>
-          <div class="stage">
+          <div id="previewStage" class="stage" data-preview-aspect="auto">
             <div class="stage-inner">
               <video id="video" autoplay playsinline muted class="hidden"></video>
               <div id="previewEmpty" class="empty-state">Thêm ảnh hoặc chụp ảnh để bắt đầu.<br>Preview thành phẩm sẽ hiển thị lớn ở đây như photobooth ngoài tiệm.</div>
@@ -250,6 +254,14 @@
                     <option value="standard">Chuẩn</option>
                     <option value="hd" selected>HD cao</option>
                     <option value="4k">4K+</option>
+                  </select>
+                </div>
+                <div class="card field">
+                  <div class="label">Tỉ lệ cửa sổ xem khi chụp</div>
+                  <select id="previewAspectSelect">
+                    <option value="auto">Tự động</option>
+                    <option value="4:3">4 : 3</option>
+                    <option value="16:9">16 : 9</option>
                   </select>
                 </div>
               </div>
@@ -520,6 +532,7 @@
       mirror:true,
       timer:3,
       quality:'hd',
+      previewAspect:'auto',
       layout:'strip8_portrait',
       fitMode:'contain_blur',
       slotBgColor:'#ffffff',
@@ -758,9 +771,48 @@
       el.value = state.frameCategoryFilter;
     }
 
+    function previewAspectLabel(value){
+      if(value === '4:3') return '4 : 3';
+      if(value === '16:9') return '16 : 9';
+      return 'Tự động';
+    }
+
+    function applyPreviewAspect(){
+      const stage = $('previewStage');
+      if(!stage) return;
+      const value = ['auto','4:3','16:9'].includes(state.previewAspect) ? state.previewAspect : 'auto';
+      stage.dataset.previewAspect = value;
+      if($('previewAspectSelect')) $('previewAspectSelect').value = value;
+      if($('quickAspectBtn')) $('quickAspectBtn').textContent = 'Tỉ lệ xem: ' + previewAspectLabel(value);
+      if($('layoutStatus')) $('layoutStatus').textContent = `Layout: ${currentLayout().name} • Xuất: ${previewAspectLabel(value)}`;
+    }
+
+    function cyclePreviewAspect(){
+      const options = ['auto','4:3','16:9'];
+      const currentIndex = Math.max(0, options.indexOf(state.previewAspect));
+      state.previewAspect = options[(currentIndex + 1) % options.length];
+      applyPreviewAspect();
+      queueGenerate();
+      queueRecapBuild();
+      saveSession();
+    }
+
+    function getAspectAdjustedBaseExport(){
+      const base = currentLayout().export || { w:1500, h:2400 };
+      const mode = ['4:3','16:9'].includes(state.previewAspect) ? state.previewAspect : 'auto';
+      if(mode === 'auto') return { w: base.w, h: base.h };
+      const target = mode === '4:3' ? (4/3) : (16/9);
+      const area = Math.max(1, base.w * base.h);
+      let w = Math.round(Math.sqrt(area * target));
+      let h = Math.round(w / target);
+      w = Math.max(960, w);
+      h = Math.max(540, h);
+      return { w, h };
+    }
+
     function setStatus(){
       renderSelectionStatus();
-      $('layoutStatus').textContent = `Layout: ${currentLayout().name}`;
+      $('layoutStatus').textContent = `Layout: ${currentLayout().name} • Xuất: ${previewAspectLabel(state.previewAspect)}`;
       $('cameraStatus').textContent = state.stream ? 'Camera đang hoạt động' : (isAndroid() ? 'Nên mở bằng localhost để dùng camera' : 'Chưa bật camera');
     }
 
@@ -1096,7 +1148,7 @@
     }
 
     function getRecapCanvasSize(){
-      const exp = currentLayout().export || { w:1080, h:1920 };
+      const exp = getAspectAdjustedBaseExport();
       if(Math.abs(exp.w - exp.h) < 20) return { w:1400, h:1400, mode:'square' };
       return exp.w > exp.h ? { w:1920, h:1080, mode:'landscape' } : { w:1080, h:1920, mode:'portrait' };
     }
@@ -1572,7 +1624,7 @@
     }
 
     function getExportSize(){
-      const base = currentLayout().export;
+      const base = getAspectAdjustedBaseExport();
       if(state.quality === 'standard') return { w: Math.round(base.w * 0.8), h: Math.round(base.h * 0.8) };
       if(state.quality === '4k') return { w: Math.round(base.w * 1.8), h: Math.round(base.h * 1.8) };
       return { w: base.w, h: base.h };
@@ -2282,6 +2334,7 @@
           autoHoleMode:state.autoHoleMode,
           removeWhite:state.removeWhite,
           quality:state.quality,
+          previewAspect:state.previewAspect,
           cameraFx:state.cameraFx
         }));
       }catch(err){ console.error(err); }
@@ -2318,6 +2371,7 @@
           autoHoleMode: data.autoHoleMode !== false,
           removeWhite: data.removeWhite !== false,
           quality:data.quality || state.quality,
+          previewAspect:['auto','4:3','16:9'].includes(data.previewAspect) ? data.previewAspect : state.previewAspect,
           cameraFx:data.cameraFx ? { ...state.cameraFx, ...data.cameraFx } : state.cameraFx
         });
       }catch(err){ console.error(err); }
@@ -2387,7 +2441,9 @@
       $('fxResetBtn').onclick = resetCameraFx;
       $('applyOrderBtn').onclick = generateComposite;
       $('timerSelect').addEventListener('change', e => { state.timer = Number(e.target.value); saveSession(); });
-      $('qualitySelect').addEventListener('change', e => { state.quality = e.target.value; queueGenerate(); saveSession(); });
+      $('qualitySelect').addEventListener('change', e => { state.quality = e.target.value; queueGenerate(); queueRecapBuild(); saveSession(); });
+      $('previewAspectSelect').addEventListener('change', e => { state.previewAspect = e.target.value; applyPreviewAspect(); queueGenerate(); queueRecapBuild(); saveSession(); });
+      if($('quickAspectBtn')) $('quickAspectBtn').onclick = cyclePreviewAspect;
       document.querySelectorAll('[data-fit]').forEach(btn => btn.onclick = () => {
         state.fitMode = btn.dataset.fit;
         document.querySelectorAll('[data-fit]').forEach(x => x.classList.toggle('active', x.dataset.fit === state.fitMode));
@@ -2435,6 +2491,7 @@
       ensureSlotTransforms();
       $('timerSelect').value = String(state.timer);
       $('qualitySelect').value = state.quality;
+      if($('previewAspectSelect')) $('previewAspectSelect').value = state.previewAspect;
       $('slotBgColor').value = state.slotBgColor;
       $('footerText').value = state.footerText;
       $('footerColor').value = state.footerColor;
@@ -2457,6 +2514,7 @@
       syncSlotControls();
       syncStickerControls();
       syncFxControls();
+      applyPreviewAspect();
       setActiveTab(state.activeTab);
       setStatus();
       bindEvents();
