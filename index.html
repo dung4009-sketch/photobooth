@@ -1441,8 +1441,20 @@
         state.stream.getTracks().forEach(t => t.stop());
         state.stream = null;
       }
+      try{ video.pause(); }catch(err){}
+      try{ video.srcObject = null; }catch(err){}
       video.classList.add('hidden');
       setStatus();
+    }
+
+    function shouldAutoPauseCameraAfterShot(){
+      return isAndroid() || window.innerWidth <= 820;
+    }
+
+    function afterShotCaptured(){
+      autoSelectLatest();
+      if(shouldAutoPauseCameraAfterShot()) stopCamera();
+      setActiveTab('photos');
     }
 
     async function startCamera(deviceId){
@@ -1598,7 +1610,7 @@
       if(!src) return;
       state.shots.unshift({ id:crypto.randomUUID(), src, name:'camera' });
       renderGallery();
-      setStatus();
+      afterShotCaptured();
       queueGenerate();
       queueRecapBuild();
     }
@@ -1610,6 +1622,7 @@
       if(!src) return;
       state.shots[0] = { ...state.shots[0], src };
       renderGallery();
+      afterShotCaptured();
       queueGenerate();
       queueRecapBuild();
     }
@@ -2419,8 +2432,8 @@
         await startCamera(state.devices[state.deviceIndex].deviceId);
       };
       $('mirrorBtn').onclick = () => { state.mirror = !state.mirror; $('mirrorBtn').textContent = 'Lật gương: ' + (state.mirror ? 'Bật' : 'Tắt'); };
-      $('generateBtn').onclick = generateComposite;
-      $('generateBtnTop').onclick = generateComposite;
+      $('generateBtn').onclick = async () => { stopCamera(); await generateComposite(); };
+      $('generateBtnTop').onclick = async () => { stopCamera(); await generateComposite(); };
       $('downloadBtn').onclick = downloadFinal;
       $('downloadBtnBottom').onclick = downloadFinal;
       $('autoSelectBtn').onclick = autoSelectLatest;
